@@ -3,150 +3,154 @@ import catchAsync from "../../utility/catchAsync";
 import httpStatus from "http-status";
 import sendResponse from "../../utility/sendResponse";
 import { RequestHandler } from "express";
-import BlogServices from "./blog.services";
-import AppError from "../../app/error/AppError";
+// import BlogServices from "./settings.services";
+// import AppError from "../../app/error/AppError";
 import GenericService from "../../utility/genericService.helpers";
-import { IBlog } from "./settings.interface";
-import Blog from "./settings.model";
-import { idConverter } from "../../utility/idConverter";
-import NotificationServices from "../notification/notification.service";
+// import Blog from "./settings.model";
+// import { idConverter } from "../../utility/idConverter";
+// import NotificationServices from "../notification/notification.service";
+import SettingsServices from "./settings.services";
+import { ISettings } from "./settings.interface";
+import Settings from "./settings.model";
 
-const createNewBlog: RequestHandlerWithFiles = catchAsync(async (req, res) => {
-  console.log("GameController.createNewGame - Inputs:", {
-    body: req.body,
-    files: req.files,
-    user: req.user,
-    headers: req.headers,
-  });
-  if (!req.user._id) {
-    throw new AppError(httpStatus.NOT_FOUND, "Author id is required");
-  }
-  req.body.data.author = req.user._id;
+const upsertSettings: RequestHandlerWithFiles = catchAsync(async (req, res) => {
+  // console.log("Upsert Settings Inputs:", {
+  //   body: req.body,
+  //   files: req.files,
+  //   user: req.user,
+  //   headers: req.headers,
+  // });
 
-  const result = await BlogServices.createNewBlogIntoDb(req.body.data);
+  // if (!req.user._id) {
+  //   throw new AppError(httpStatus.NOT_FOUND, "Admin is required");
+  // }
+  // req.body.data.admin = req.user._id;
 
-  await NotificationServices.sendNoification({
-    ownerId: req.user?._id,
-    key: "notification",
-    data: {
-      id: result.blog?._id.toString(),
-      message: `New blog added`,
-    },
-    receiverId: [req.user?._id],
-    notifyAdmin: true,
-  });
+  const result = await SettingsServices.upsertSettingsIntoDb(req.body.data);
+
+  // await NotificationServices.sendNoification({
+  //   ownerId: req.user?._id,
+  //   key: "notification",
+  //   data: {
+  //     id: result.settings?._id.toString(),
+  //     message: `${req.body?.type} upserted successfully`,
+  //   },
+  //   receiverId: [req.user?._id],
+  //   notifyAdmin: true,
+  // });
 
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.CREATED,
-    message: "successfully created blog",
+    message: "successfully upserted Settings",
     data: result,
   });
 });
 
-const getBlog: RequestHandler = catchAsync(async (req, res) => {
-  const { authorId } = req.body.data;
-  if (!authorId) {
-    throw new AppError(httpStatus.NOT_FOUND, `Author:${authorId} not found`);
-  }
-  const result = await GenericService.findResources<IBlog>(
-    Blog,
-    await idConverter(authorId)
+// const getBlog: RequestHandler = catchAsync(async (req, res) => {
+//   const { authorId } = req.body.data;
+//   if (!authorId) {
+//     throw new AppError(httpStatus.NOT_FOUND, `Author:${authorId} not found`);
+//   }
+//   const result = await GenericService.findResources<IBlog>(
+//     Blog,
+//     await idConverter(authorId)
+//   );
+
+//   sendResponse(res, {
+//     success: true,
+//     statusCode: httpStatus.OK,
+//     message: "Successfully retrieved blog",
+//     data: result,
+//   });
+// });
+
+const getSettings: RequestHandler = catchAsync(async (req, res) => {
+  const result = await GenericService.findAllResources<ISettings>(
+    Settings,
+    req.query,
+    ["type", "content"]
   );
 
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.OK,
-    message: "Successfully retrieved blog",
+    message: "Successfully retrieved all settings",
     data: result,
   });
 });
 
-const getAllBlog: RequestHandler = catchAsync(async (req, res) => {
-  const result = await GenericService.findAllResources<IBlog>(Blog, req.query, [
-    "author",
-    "blogName",
-  ]);
+// const updateBlog: RequestHandler = catchAsync(async (req, res) => {
+//   if (!req.user) {
+//     throw new AppError(httpStatus.UNAUTHORIZED, "User not authenticated", "");
+//   }
+//   const vendor = req.user?._id;
+//   console.log("userId: ", vendor.toString());
 
-  sendResponse(res, {
-    success: true,
-    statusCode: httpStatus.OK,
-    message: "Successfully retrieved all blogs",
-    data: result,
-  });
-});
+//   if (!vendor) {
+//     throw new AppError(httpStatus.BAD_REQUEST, "Vendor ID is required", "");
+//   }
+//   req.body.data.author = vendor;
+//   const result = await BlogServices.updateBlogIntoDb(req.body.data);
 
-const updateBlog: RequestHandler = catchAsync(async (req, res) => {
-  if (!req.user) {
-    throw new AppError(httpStatus.UNAUTHORIZED, "User not authenticated", "");
-  }
-  const vendor = req.user?._id;
-  console.log("userId: ", vendor.toString());
+//   await NotificationServices.sendNoification({
+//     ownerId: req.user?._id,
+//     key: "notification",
+//     data: {
+//       id: result.blog?._id.toString(),
+//       message: `A blog updated`,
+//     },
+//     receiverId: [req.user?._id],
+//     notifyAdmin: true,
+//   });
 
-  if (!vendor) {
-    throw new AppError(httpStatus.BAD_REQUEST, "Vendor ID is required", "");
-  }
-  req.body.data.author = vendor;
-  const result = await BlogServices.updateBlogIntoDb(req.body.data);
+//   sendResponse(res, {
+//     success: true,
+//     statusCode: httpStatus.CREATED,
+//     message: "successfully updated blog",
+//     data: result,
+//   });
+// });
 
-  await NotificationServices.sendNoification({
-    ownerId: req.user?._id,
-    key: "notification",
-    data: {
-      id: result.blog?._id.toString(),
-      message: `A blog updated`,
-    },
-    receiverId: [req.user?._id],
-    notifyAdmin: true,
-  });
+// const deleteBlog: RequestHandler = catchAsync(async (req, res) => {
+//   if (!req.user) {
+//     throw new AppError(httpStatus.UNAUTHORIZED, "User not authenticated", "");
+//   }
+//   const vendor = req.user?._id;
+//   console.log("userId: ", vendor.toString());
+//   if (!vendor) {
+//     throw new AppError(httpStatus.NOT_FOUND, "Author ID is required", "");
+//   }
+//   const { blogId } = req.body.data;
+//   if (!blogId) {
+//     throw new AppError(httpStatus.NOT_FOUND, "blogId is required", "");
+//   }
 
-  sendResponse(res, {
-    success: true,
-    statusCode: httpStatus.CREATED,
-    message: "successfully updated blog",
-    data: result,
-  });
-});
+//   req.body.data.author = vendor;
+//   const result = await GenericService.deleteResources<IBlog, "author">(
+//     Blog,
+//     blogId,
+//     await idConverter(vendor),
+//     "author"
+//   );
 
-const deleteBlog: RequestHandler = catchAsync(async (req, res) => {
-  if (!req.user) {
-    throw new AppError(httpStatus.UNAUTHORIZED, "User not authenticated", "");
-  }
-  const vendor = req.user?._id;
-  console.log("userId: ", vendor.toString());
-  if (!vendor) {
-    throw new AppError(httpStatus.NOT_FOUND, "Author ID is required", "");
-  }
-  const { blogId } = req.body.data;
-  if (!blogId) {
-    throw new AppError(httpStatus.NOT_FOUND, "blogId is required", "");
-  }
+//   await NotificationServices.sendNoification({
+//     ownerId: req.user?._id,
+//     key: "notification",
+//     data: {
+//       message: `A blog deleted`,
+//     },
+//     receiverId: [req.user?._id],
+//     notifyAdmin: true,
+//   });
 
-  req.body.data.author = vendor;
-  const result = await GenericService.deleteResources<IBlog, "author">(
-    Blog,
-    blogId,
-    await idConverter(vendor),
-    "author"
-  );
-
-  await NotificationServices.sendNoification({
-    ownerId: req.user?._id,
-    key: "notification",
-    data: {
-      message: `A blog deleted`,
-    },
-    receiverId: [req.user?._id],
-    notifyAdmin: true,
-  });
-
-  sendResponse(res, {
-    success: true,
-    statusCode: httpStatus.CREATED,
-    message: "successfully deleted a blog",
-    data: result,
-  });
-});
+//   sendResponse(res, {
+//     success: true,
+//     statusCode: httpStatus.CREATED,
+//     message: "successfully deleted a blog",
+//     data: result,
+//   });
+// });
 
 // const deleteAllBlog: RequestHandler = catchAsync(async (req, res) => {
 //   console.log("BlogController.createNewGame - Inputs:", {
@@ -163,13 +167,13 @@ const deleteBlog: RequestHandler = catchAsync(async (req, res) => {
 //   });
 // });
 
-const BlogController = {
-  createNewBlog,
-  getBlog,
-  getAllBlog,
-  updateBlog,
-  deleteBlog,
+const SettingsController = {
+  upsertSettings,
+  getSettings,
+  // getAllBlog,
+  // updateBlog,
+  // deleteBlog,
   // deleteAllBlog,
 };
 
-export default BlogController;
+export default SettingsController;

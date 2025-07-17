@@ -3,6 +3,17 @@ import QueryBuilder from "../app/builder/QueryBuilder";
 import AppError from "../app/error/AppError";
 import httpStatus from "http-status";
 
+const insertResources = async <T>(Model: Model<T>, payload: T) => {
+  const insertResource = await Model.create<T>(payload);
+  if (!insertResource) {
+    throw new AppError(
+      httpStatus.NOT_FOUND,
+      `New ${Model.modelName.toLowerCase()} data not inserted`
+    );
+  }
+  return { [Model.modelName.toLowerCase()]: insertResource };
+};
+
 const findResources = async <T>(Model: Model<T>, QueryId: Types.ObjectId) => {
   if (!QueryId) {
     throw new AppError(
@@ -38,6 +49,31 @@ const findAllResources = async <T>(
   const meta = await queryBuilder.countTotal();
 
   return { meta, [Model.modelName.toLowerCase()]: resources };
+};
+
+const updateResources = async <T>(
+  Model: Model<T>,
+  updateId: Types.ObjectId,
+  payload: Partial<T>
+) => {
+  if (!updateId) {
+    throw new AppError(
+      httpStatus.NOT_FOUND,
+      `${Model.modelName} id is required to update`
+    );
+  }
+  const updateResource = await Model.findByIdAndUpdate(updateId, payload, {
+    new: true,
+    runValidators: true,
+  });
+  if (!updateResource) {
+    throw new AppError(
+      httpStatus.NOT_FOUND,
+      `Id:${updateId} of ${Model.modelName} not found`
+    );
+  }
+
+  return { [Model.modelName.toLowerCase()]: updateResource };
 };
 
 const deleteResources = async <T, K extends keyof T | undefined = undefined>(
@@ -83,8 +119,10 @@ const deleteResources = async <T, K extends keyof T | undefined = undefined>(
 };
 
 const GenericService = {
+  insertResources,
   findResources,
   findAllResources,
+  updateResources,
   deleteResources,
 };
 

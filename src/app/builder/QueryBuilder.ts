@@ -1,4 +1,4 @@
-import { FilterQuery, Query } from 'mongoose';
+import { FilterQuery, Query } from "mongoose";
 
 class QueryBuilder<T> {
   public modelQuery: Query<T[], T>;
@@ -14,7 +14,7 @@ class QueryBuilder<T> {
     if (searchTerm) {
       this.modelQuery = this.modelQuery.find({
         $or: searchableFields.map((field) => ({
-          [field]: { $regex: searchTerm, $options: 'i' },
+          [field]: { $regex: searchTerm, $options: "i" },
         })),
       } as FilterQuery<T>);
     }
@@ -23,18 +23,18 @@ class QueryBuilder<T> {
 
   filter() {
     const queryObject = { ...this.query };
-    const excludeField = ['searchTerm', 'sort', 'limit', 'page', 'fields'];
+    const excludeField = ["searchTerm", "sort", "limit", "page", "fields"];
     excludeField.forEach((field) => delete queryObject[field]);
     this.modelQuery = this.modelQuery.find(queryObject as FilterQuery<T>);
     return this;
   }
 
   sort() {
-    const sort = (this?.query?.sort as string)?.split(',').join(' ');
+    const sort = (this?.query?.sort as string)?.split(",").join(" ");
     if (sort) {
       this.modelQuery = this.modelQuery.sort(sort);
     } else {
-      this.modelQuery = this.modelQuery.sort('-createdAt');
+      this.modelQuery = this.modelQuery.sort("-createdAt");
     }
     return this;
   }
@@ -57,9 +57,9 @@ class QueryBuilder<T> {
   }
 
   fields() {
-    let fields = '-__v';
+    let fields = "-__v";
     if (this.query?.fields) {
-      fields = (this.query?.fields as string).split(',').join(' ');
+      fields = (this.query?.fields as string).split(",").join(" ");
     }
     this.modelQuery = this.modelQuery.select(fields);
     return this;

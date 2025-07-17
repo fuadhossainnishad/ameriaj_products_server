@@ -1,32 +1,17 @@
 import { model, Model, Schema } from "mongoose";
-import { IBlog } from "./settings.interface";
 import MongooseHelper from "../../utility/mongoose.helpers";
+import { ISettings } from "./settings.interface";
 
-const BlogSchema: Schema = new Schema<IBlog>(
+const SettingsSchema: Schema = new Schema<ISettings>(
   {
-    author: {
-      type: Schema.Types.ObjectId,
-      ref: "Vendor",
-      required: true,
-    },
-    blogName: {
+    type: {
       type: String,
       required: true,
     },
-    details: {
+    content: {
       type: String,
       required: true,
     },
-    blogImage: {
-      type: String,
-      required: true,
-    },
-    category: [
-      {
-        type: String,
-        required: true,
-      },
-    ],
     isDeleted: {
       type: Boolean,
       default: false,
@@ -37,11 +22,11 @@ const BlogSchema: Schema = new Schema<IBlog>(
   }
 );
 
-MongooseHelper.findExistence(BlogSchema);
-MongooseHelper.applyToJSONTransform(BlogSchema);
+MongooseHelper.findExistence(SettingsSchema);
+MongooseHelper.applyToJSONTransform(SettingsSchema);
 
-BlogSchema.index({ blogName: "text", details: "text" });
+SettingsSchema.index({ type: "text", content: "text" });
 
-const Blog: Model<IBlog> = model<IBlog>("Blog", BlogSchema);
+const Settings: Model<ISettings> = model<ISettings>("Setting", SettingsSchema);
 
-export default Blog;
+export default Settings;

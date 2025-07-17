@@ -4,9 +4,9 @@ import { TOrder, TOrderStatus } from "./order.interface";
 import Car from "../car/car.model";
 import { idConverter } from "../../utility/idConverter";
 import { dayCount } from "../../utility/dayCount.utils";
-import Insurance from "../insurance/insurance.model";
+import Insurance from "../subscription/subscription.model";
 import GenericService from "../../utility/genericService.helpers";
-import { IInsurance } from "../insurance/insurance.interface";
+import { IInsurance } from "../subscription/subscription.interface";
 import Order from "./order.model";
 
 const createOrderServices = async (payload: TOrder) => {
