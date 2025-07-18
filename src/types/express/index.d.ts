@@ -3,7 +3,6 @@ import { File } from "multer";
 import { JwtPayload } from "jsonwebtoken";
 import { IUser } from "../../module/user/user.interface";
 import { LeanDocument } from "mongoose";
-import { IVendor } from "../../module/vendor/vendor.interface";
 import { IAdmin } from "../../module/admin/admin.interface";
 import { Role } from "../../module/auth/auth.interface";
 
@@ -18,7 +17,7 @@ export interface UserPayload extends JwtPayload {
 export type AuthPayload = UserPayload;
 
 export interface RequestWithFiles extends Request {
-  user?: LeanDocument<IUser | IVendor | IAdmin>;
+  user?: LeanDocument<IUser | IAdmin>;
   files?: { [fieldname: string]: File[] } | File[] | undefined;
 }
 
@@ -31,7 +30,7 @@ export type RequestHandlerWithFiles = (
 declare global {
   namespace Express {
     interface Request {
-      user?: LeanDocument<IUser | IVendor | IAdmin>;
+      user?: LeanDocument<IUser | IAdmin>;
     }
   }
 }

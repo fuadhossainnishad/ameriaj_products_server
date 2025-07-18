@@ -1,29 +1,29 @@
 import { Types } from "mongoose";
 import { TRole } from "../../types/express";
 
-export const Role = ["User", "Vendor", "Admin"] as const;
+export const Role = ["User", "Admin"] as const;
 
 // export interface IAuthProvider extends Document {
 //   sub: string;
 //   authProviderName: string;
 // }
 export interface ISignIn {
-  isAuthProvider?: boolean;
+  // isAuthProvider?: boolean;
   email: string;
   password?: string;
-  sub?: string;
-  authProviderName?: string;
+  // sub?: string;
+  // authProviderName?: string;
   // authProvider?: IAuthProvider[];
 }
 export interface ISignup extends ISignIn {
-  firstName?: string;
-  lastName?: string;
-  userName?: string;
-  mobile?: string;
-  location?: string;
-  photo: string;
+  firstName: string;
+  lastName: string;
+  userName: string;
+  countryCode: string;
+  mobile: string;
+  confirmedPassword: string;
   role: TRole;
-  agreeTcp: boolean;
+  // agreeTcp: boolean;
 }
 
 export interface IOtp {

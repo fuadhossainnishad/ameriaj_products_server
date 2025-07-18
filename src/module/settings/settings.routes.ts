@@ -1,5 +1,4 @@
 import express from "express";
-import auth from "../../middleware/auth";
 
 import SettingsController from "./settings.controller";
 

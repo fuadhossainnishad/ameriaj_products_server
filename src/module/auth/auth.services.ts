@@ -5,116 +5,26 @@ import { sendMail } from "../../app/mailer/sendMail";
 import { emailRegex } from "../../constants/regex.constants";
 import { idConverter } from "../../utility/idConverter";
 import { jwtHelpers } from "../../app/jwtHelpers/jwtHelpers";
-import { Model } from "mongoose";
-import { ISignIn, ISignup } from "./auth.interface";
-import { getRoleModels } from "../../utility/role.utils";
-import { IUser } from "../user/user.interface";
-import { IVendor } from "../vendor/vendor.interface";
-import { IAdmin } from "../admin/admin.interface";
+import { ISignIn } from "./auth.interface";
 import User from "../user/user.model";
 import { TResetPassword, TUpdatePassword, TVerifyOtp } from "./auth.constant";
 import Otp from "./auth.model";
 
-// const signUpService = async (payload: ISignup) => {
-//   console.log("signUpService:", payload);
-//   const { email, role } = payload;
-//   const QueryModel = getRoleModels(role);
-//   const existing = await QueryModel?.findOne({ email });
-//   if (existing) {
-//     const existingSub =
-//       existing.authProvider?.map((provider: IAuthProvider) => provider.sub) ||
-//       [];
-//     const isProviderExist = authProvider?.some((newProvider) =>
-//       existingSub.includes(newProvider.sub)
-//     );
-//     if (isProviderExist) {
-//       throw new AppError(
-//         httpStatus.CONFLICT,
-//         "Email already registered. Please, signin...",
-//         ""
-//       );
-//     }
-//     existing.authProvider?.push(...(authProvider || []));
-//     await existing.save();
-//     return existing;
-//   }
-//   const newUser = await QueryModel?.create({ payload });
-
-//   return await QueryModel?.findById(newUser?._id).select("-password");
-// };
-
-const signUpService = async (payload: ISignup) => {
-  console.log("signUpService:", payload);
-
-  const { email, role } = payload;
-  const QueryModel = getRoleModels(role);
-
-  if (!QueryModel) {
-    throw new AppError(httpStatus.BAD_REQUEST, "Invalid role provided", "");
-  }
-
-  const existing = await QueryModel?.findOne({ email });
-
-  if (existing) {
-    throw new AppError(
-      httpStatus.CONFLICT,
-      "Email already registered. Please, signin...",
-      ""
-    );
-  }
-
-  // if (existing) {
-  //   if (role !== "Admin") {
-  //     throw new AppError(
-  //       httpStatus.CONFLICT,
-  //       "Email already registered. Please, signin...",
-  //       ""
-  //     );
-  //   } else {
-  //     if (payload.password && role === "Admin") {
-  //       const login = await loginService({
-  //         email: email,
-  //         password: payload.password,
-  //       });
-  //       return login;
-  //     }
-  //   }
-  // }
-
-  // if (existing && existing?.sub && (existing?.sub === sub)) {
-  //   throw new AppError(
-  //     httpStatus.CONFLICT,
-  //     "Email already registered. Please, signin...",
-  //     ""
-  //   );
-  // }
-
-  // let newUser;
-  // if (payload.sub && payload.authProviderName) {
-  //   newUser = await QueryModel?.create({ sub, email, role, authProviderName })
-  // }
-
-  const newUser = await QueryModel?.create(payload);
-
-  const signUp = await QueryModel?.findById(newUser?._id).select("-password");
-  return { signUp: signUp };
-};
-
 const loginService = async (payload: ISignIn) => {
   console.log(payload);
-  const QueryModel: Model<IUser | IVendor | IAdmin> = User;
+  const QueryModel = User;
   const query: Record<string, unknown> = { email: payload.email };
-  if (payload.sub) {
-    query["sub"] = payload.sub;
-    query["authProviderName"] = payload.authProviderName;
-  }
+
+  // if (payload.sub) {
+  //   query["sub"] = payload.sub;
+  //   query["authProviderName"] = payload.authProviderName;
+  // }
 
   const isExist = await QueryModel.findOne(query, {
     _id: 1,
     password: 1,
     email: 1,
     role: 1,
-    companyName: 1,
   });
 
   if (!isExist) {
@@ -163,7 +73,7 @@ const requestForgotPasswordService = async (email: string) => {
     throw new AppError(httpStatus.BAD_REQUEST, "Invalid email format", "");
   }
 
-  const QueryModel: Model<IUser | IVendor | IAdmin> = User;
+  const QueryModel = User;
 
   const user = await QueryModel.findOne({ email });
   if (!user) {
@@ -219,7 +129,7 @@ const verifyOtpService = async (payload: TVerifyOtp) => {
   if (!otpRecord) {
     throw new AppError(httpStatus.BAD_REQUEST, "Invalid or expired OTP", "");
   }
-  const QueryModel: Model<IUser | IVendor | IAdmin> = User;
+  const QueryModel = User;
   if (!QueryModel) {
     throw new AppError(httpStatus.BAD_REQUEST, "Invalid role provided", "");
   }
@@ -238,7 +148,7 @@ const resetPasswordService = async (payload: TResetPassword) => {
   console.log(userId);
 
   const userIdObject = await idConverter(userId!);
-  const QueryModel: Model<IUser | IVendor | IAdmin> = User;
+  const QueryModel = User;
   const user = await QueryModel.findOne(
     { _id: userIdObject, isDeleted: { $ne: true } },
     { password: 1, email: 1 }
@@ -266,7 +176,7 @@ const updatePasswordService = async (payload: TUpdatePassword) => {
   console.log(userId);
 
   const userIdObject = await idConverter(userId!);
-  const QueryModel: Model<IUser | IVendor | IAdmin> = User;
+  const QueryModel = User;
   const user = await QueryModel.findOne(
     { _id: userIdObject, isDeleted: { $ne: true } },
     { password: 1, email: 1 }
@@ -300,7 +210,6 @@ const updatePasswordService = async (payload: TUpdatePassword) => {
 };
 
 const AuthServices = {
-  signUpService,
   loginService,
   requestForgotPasswordService,
   verifyOtpService,

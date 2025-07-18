@@ -6,6 +6,9 @@ import config from "../../app/config";
 import sendResponse from "../../utility/sendResponse";
 import NotificationServices from "../notification/notification.service";
 import AppError from "../../app/error/AppError";
+import GenericService from "../../utility/genericService.helpers";
+import User from "../user/user.model";
+import { IUser } from "../user/user.interface";
 
 const signUp: RequestHandler = catchAsync(async (req, res) => {
   const { role } = req.body.data;
@@ -13,21 +16,26 @@ const signUp: RequestHandler = catchAsync(async (req, res) => {
   // if (!email || !password) {
   //   throw new AppError(httpStatus.BAD_REQUEST, "Missing required fields", "");
   // }
-  const result = await AuthServices.signUpService(req.body.data);
+  const result = await GenericService.insertResources<IUser>(
+    User,
+    req.body.data
+  );
+
   console.log("register: ", result);
-  if (!result.signUp || !result.signUp._id) {
+  if (!result.user || !result.user._id) {
     throw new AppError(httpStatus.UNAUTHORIZED, "User not found");
   }
-  await NotificationServices.sendNoification({
-    ownerId: result.signUp._id!,
-    key: "notification",
-    data: {
-      id: result.signUp?._id.toString(),
-      message: `New user register`,
-    },
-    receiverId: [result.signUp._id],
-    notifyAdmin: true,
-  });
+
+  // await NotificationServices.sendNoification({
+  //   ownerId: result.signUp._id!,
+  //   key: "notification",
+  //   data: {
+  //     id: result.signUp?._id.toString(),
+  //     message: `New user register`,
+  //   },
+  //   receiverId: [result.signUp._id],
+  //   notifyAdmin: true,
+  // });
 
   sendResponse(res, {
     success: true,
@@ -99,13 +107,13 @@ const verifyOtp: RequestHandler = catchAsync(async (req, res) => {
 const resetPassword: RequestHandler = catchAsync(async (req, res) => {
   const result = await AuthServices.resetPasswordService(req.body.data);
   await NotificationServices.sendNoification({
-    ownerId: req.user?._id,
+    ownerId: result.user?._id,
     key: "notification",
     data: {
       id: result.user._id.toString(),
       message: `Password reset`,
     },
-    receiverId: [req.user?._id],
+    receiverId: [result.user?._id],
     notifyAdmin: true,
   });
   sendResponse(res, {

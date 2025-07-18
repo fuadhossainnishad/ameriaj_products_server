@@ -10,27 +10,27 @@ import Subscription from "./subscription.model";
 import { ISubscription } from "./subscription.interface";
 
 const createSubscription: RequestHandler = catchAsync(async (req, res) => {
-  if (req.user?.role !== "Admin") {
-    throw new AppError(
-      httpStatus.BAD_REQUEST,
-      "Subscription ID is required",
-      ""
-    );
-  }
+  // if (req.user?.role !== "Admin") {
+  //   throw new AppError(
+  //     httpStatus.BAD_REQUEST,
+  //     "Author ID is required",
+  //     ""
+  //   );
+  // }
   const result = await GenericService.insertResources<ISubscription>(
     Subscription,
     req.body?.data
   );
 
-  await NotificationServices.sendNoification({
-    ownerId: req.user?._id,
-    key: "notification",
-    data: {
-      id: result.Subsciption?._id.toString(),
-      message: `New subsciption added`,
-    },
-    receiverId: [req.user?._id],
-  });
+  // await NotificationServices.sendNoification({
+  //   ownerId: req.user?._id,
+  //   key: "notification",
+  //   data: {
+  //     id: result.Subsciption?._id.toString(),
+  //     message: `New subsciption added`,
+  //   },
+  //   receiverId: [req.user?._id],
+  // });
 
   sendResponse(res, {
     success: true,
@@ -79,31 +79,33 @@ const getAllSubscription: RequestHandler = catchAsync(async (req, res) => {
 });
 
 const updateSubscription: RequestHandler = catchAsync(async (req, res) => {
-  if (!req.user) {
-    throw new AppError(httpStatus.UNAUTHORIZED, "Admin not authenticated", "");
-  }
-  const rawId = req.query?.id;
-  const id =
-    typeof rawId === "string"
-      ? rawId
-      : Array.isArray(rawId) && typeof rawId[0] === "string"
-        ? rawId[0]
-        : undefined;
+  // if (!req.user) {
+  //   throw new AppError(httpStatus.UNAUTHORIZED, "Admin not authenticated", "");
+  // }
+  const id = req?.params.id;
+
+  // const id =
+  //   typeof rawId === "string"
+  //     ? rawId
+  //     : Array.isArray(rawId) && typeof rawId[0] === "string"
+  //       ? rawId[0]
+  //       : undefined;
+
   const result = await GenericService.updateResources<ISubscription>(
     Subscription,
-    await idConverter(id!),
+    await idConverter(id),
     req.body.data
   );
 
-  await NotificationServices.sendNoification({
-    ownerId: req.user?._id,
-    key: "notification",
-    data: {
-      id: result.subscription?._id.toString(),
-      message: `An Subscription updated`,
-    },
-    receiverId: [req.user?._id],
-  });
+  // await NotificationServices.sendNoification({
+  //   ownerId: req.user?._id,
+  //   key: "notification",
+  //   data: {
+  //     id: result.subscription?._id.toString(),
+  //     message: `An Subscription updated`,
+  //   },
+  //   receiverId: [req.user?._id],
+  // });
 
   sendResponse(res, {
     success: true,

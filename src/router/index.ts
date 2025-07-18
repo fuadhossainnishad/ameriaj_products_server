@@ -9,7 +9,7 @@ import ReviewRouter from "../module/review/review.routes";
 import StripeRouter from "../module/stripe/stripe.routes";
 import NotificationRouter from "../module/notification/notification.routes";
 import SettingsRouter from "../module/settings/settings.routes";
-import SubscriptionRouter from "../module/subscription/subsciption.routes";
+import SubscriptionRouter from "../module/subscription/subscription.routes";
 
 const router = express.Router();
 
