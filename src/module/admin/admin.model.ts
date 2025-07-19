@@ -1,11 +1,61 @@
-import { Model, Schema } from "mongoose";
+import { model, Model, Schema } from "mongoose";
 import MongooseHelper from "../../utility/mongoose.helpers";
 import { IAdmin } from "./admin.interface";
-import User from "../user/user.model";
+import { Role } from "../auth/auth.interface";
 
-const AdminSchema = new Schema({}, { timestamps: true });
+const isRequired = function (this: IAdmin): boolean {
+  return !(this.role === "Admin");
+};
+const AdminSchema: Schema = new Schema<IAdmin>(
+  {
+    // sub: {
+    //   type: String,
+    //   required: false,
+    // },
+    // authProviderName: {
+    //   type: String,
+    //   required: isRequiredForSocial,
+    // },
 
-MongooseHelper.excludeFields(AdminSchema, ["firstName", "lastName"], "Admin");
+    userName: {
+      type: String,
+      default: "",
+    },
+    password: {
+      type: String,
+      required: isRequired,
+    },
+    confirmedPassword: {
+      type: String,
+      required: isRequired,
+    },
+    contactNumber: {
+      type: String,
+      default: "",
+    },
+    email: {
+      type: String,
+      required: [true, "Email is required"],
+      unique: [true, "Email already exist"],
+    },
+    role: {
+      type: String,
+      enum: Role,
+      required: [true, "Role is required"],
+    },
+    passwordUpdatedAt: {
+      type: Date,
+      default: Date.now,
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  { timestamps: true, collection: "Users" }
+);
+
+// MongooseHelper.excludeFields(AdminSchema, ["firstName", "lastName"], "Admin");
 MongooseHelper.applyToJSONTransform(AdminSchema);
-const Admin: Model<IAdmin> = User.discriminator<IAdmin>("Admin", AdminSchema);
+const Admin: Model<IAdmin> = model<IAdmin>("Admin", AdminSchema);
 export default Admin;

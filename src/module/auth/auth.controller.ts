@@ -106,16 +106,16 @@ const verifyOtp: RequestHandler = catchAsync(async (req, res) => {
 
 const resetPassword: RequestHandler = catchAsync(async (req, res) => {
   const result = await AuthServices.resetPasswordService(req.body.data);
-  await NotificationServices.sendNoification({
-    ownerId: result.user?._id,
-    key: "notification",
-    data: {
-      id: result.user._id.toString(),
-      message: `Password reset`,
-    },
-    receiverId: [result.user?._id],
-    notifyAdmin: true,
-  });
+  // await NotificationServices.sendNoification({
+  //   ownerId: result.user?._id,
+  //   key: "notification",
+  //   data: {
+  //     id: result.user._id.toString(),
+  //     message: `Password reset`,
+  //   },
+  //   receiverId: [result.user?._id],
+  //   notifyAdmin: true,
+  // });
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.OK,
@@ -124,17 +124,21 @@ const resetPassword: RequestHandler = catchAsync(async (req, res) => {
   });
 });
 const updatePassword: RequestHandler = catchAsync(async (req, res) => {
-  const result = await AuthServices.updatePasswordService(req.body.data);
-  await NotificationServices.sendNoification({
-    ownerId: req.user?._id,
-    key: "notification",
-    data: {
-      id: result.user._id.toString(),
-      message: `Password updated`,
-    },
-    receiverId: [req.user?._id],
-    notifyAdmin: true,
-  });
+  if (!req.user) {
+    throw new AppError(httpStatus.UNAUTHORIZED, "User not authenticated", "");
+  }
+  const userId = req.user?._id;
+  const result = await AuthServices.updatePasswordService({...req.body.data, userId: userId?.toString()});
+  // await NotificationServices.sendNoification({
+  //   ownerId: req.user?._id,
+  //   key: "notification",
+  //   data: {
+  //     id: result.user._id.toString(),
+  //     message: `Password updated`,
+  //   },
+  //   receiverId: [req.user?._id],
+  //   notifyAdmin: true,
+  // });
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.OK,

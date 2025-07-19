@@ -2,6 +2,7 @@ import express from "express";
 import validationRequest from "../../middleware/validationRequest";
 import AuthValidationSchema from "./auth.validation";
 import AuthController from "./auth.controller";
+import auth from "../../middleware/auth";
 
 const router = express.Router();
 
@@ -37,6 +38,7 @@ router.put(
 
 router.patch(
   "/update_password",
+  auth("Admin", "User"),
   validationRequest(AuthValidationSchema.updatePasswordValidation),
   AuthController.updatePassword
 );

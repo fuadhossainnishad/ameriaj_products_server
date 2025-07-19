@@ -55,8 +55,7 @@ const resetPasswordValidation = z.object({
 const updatePasswordValidation = z.object({
   body: z.object({
     data: z.object({
-      userId: z.string({ required_error: "Id is required" }),
-      password: z
+      oldPassword: z
         .string({ required_error: "Password is required" })
         .min(8, "minimum password length is 8")
         .regex(

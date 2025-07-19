@@ -23,5 +23,5 @@ export type TResetPassword = {
 };
 
 export type TUpdatePassword = TResetPassword & {
-  password: string;
+  oldPassword: string;
 };

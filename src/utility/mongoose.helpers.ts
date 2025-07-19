@@ -4,6 +4,7 @@ import { idConverter } from "./idConverter";
 import AppError from "../app/error/AppError";
 import httpStatus from "http-status";
 import { TRole } from "../types/express";
+import { IUser } from "../module/user/user.interface";
 
 interface ISavePassword {
   password?: string;
@@ -20,8 +21,25 @@ const preSaveHashPassword = (schema: Schema) => {
     }
     next();
   });
+};
 
-  const handlePasswordInQuery = async function (this: Query<unknown, unknown>, next: () => void) {
+const preSaveConjugate = <T extends IUser>(schema: Schema) => {
+  schema.pre<T>("save", async function (next) {
+    if (this.role === "User") {
+      if (this.firstName && this.lastName) {
+        this.userName = this.firstName + " " + this.lastName;
+      }
+      if (this.countryCode && this.mobile) {
+        this.contactNumber = `${this.countryCode}${this.mobile}`;
+      }
+      next();
+    }
+  });
+
+  const handlePasswordInQuery = async function (
+    this: Query<unknown, unknown>,
+    next: () => void
+  ) {
     const update = this.getUpdate();
 
     if (update && typeof update === "object" && !Array.isArray(update)) {
@@ -37,7 +55,6 @@ const preSaveHashPassword = (schema: Schema) => {
 
     next();
   };
-
 
   schema.pre("findOneAndUpdate", handlePasswordInQuery);
   schema.pre("updateOne", handlePasswordInQuery);
@@ -104,6 +121,7 @@ const excludeFields = (
 const MongooseHelper = {
   applyToJSONTransform,
   preSaveHashPassword,
+  preSaveConjugate,
   comparePasswordIntoDb,
   findExistence,
   excludeFields,

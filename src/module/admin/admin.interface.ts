@@ -1,9 +1,12 @@
 import { Document } from "mongoose";
-import { IUser } from "../user/user.interface";
-import { TRole } from "../../types/express";
+import { ISignup } from "../auth/auth.interface";
 
-export interface IAdmin extends Omit<IUser, "firstName" | "lastName"> {
-  role: TRole;
+export interface IAdmin
+  extends Omit<ISignup, "firstName" | "lastName" | "countryCode" | "mobile"> {
+  contactNumber: string;
+  comparePassword(plainPassword: string): Promise<boolean>;
+  passwordUpdatedAt: Date;
+  isDeleted: boolean;
 }
 export interface IRecentActivity extends Document {
   title: string;

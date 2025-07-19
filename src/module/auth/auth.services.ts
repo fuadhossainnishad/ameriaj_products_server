@@ -172,7 +172,7 @@ const resetPasswordService = async (payload: TResetPassword) => {
 };
 
 const updatePasswordService = async (payload: TUpdatePassword) => {
-  const { userId, password, newPassword } = payload;
+  const { userId, oldPassword, newPassword } = payload;
   console.log(userId);
 
   const userIdObject = await idConverter(userId!);
@@ -186,7 +186,7 @@ const updatePasswordService = async (payload: TUpdatePassword) => {
     throw new AppError(httpStatus.NOT_FOUND, "User not found", "");
   }
 
-  const isPasswordValid = await user.comparePassword(password);
+  const isPasswordValid = await user.comparePassword(oldPassword);
 
   if (!isPasswordValid) {
     throw new AppError(

@@ -1,16 +1,16 @@
-import { model, Model, Schema } from "mongoose";
+import { Model, Schema } from "mongoose";
 import { IUser } from "./user.interface";
 import MongooseHelper from "../../utility/mongoose.helpers";
-import { Role } from "../auth/auth.interface";
+import Admin from "../admin/admin.model";
 
 // Helpers
 const isRequired = function (this: IUser): boolean {
   return !!this.firstName;
 };
 
-// const isRequiredForSocial = function (this: IUser): boolean {
-//   return !!this.sub;
-// };
+const isPlanRequired = function (this: IUser): boolean {
+  return !this.trial;
+};
 
 // Schema
 export const UserSchema: Schema = new Schema<IUser>(
@@ -31,21 +31,6 @@ export const UserSchema: Schema = new Schema<IUser>(
       type: String,
       required: isRequired,
     },
-    userName: {
-      type: String,
-      default: function (this: IUser): string {
-        if (this.role === "User") return this.firstName + " " + this.lastName;
-        return "";
-      },
-    },
-    password: {
-      type: String,
-      required: isRequired,
-    },
-    confirmedPassword: {
-      type: String,
-      required: isRequired,
-    },
     mobile: {
       type: String,
       required: isRequired,
@@ -54,34 +39,56 @@ export const UserSchema: Schema = new Schema<IUser>(
       type: String,
       required: isRequired,
     },
-    email: {
+    uic: {
       type: String,
-      required: [true, "Email is required"],
-      unique: [true, "Email already exist"],
+      default: "",
     },
-    role: {
+    rank: {
       type: String,
-      enum: Role,
-      required: [true, "Role is required"],
+      default: "",
     },
-    passwordUpdatedAt: {
-      type: Date,
-      default: Date.now,
-    },
-    isDeleted: {
-      type: Boolean,
-      default: false,
+    subscriptionPlan: {
+      trial: {
+        type: Boolean,
+        required: true,
+      },
+      trialUsed: {
+        type: Boolean,
+        default: function (this: IUser): boolean {
+          return this.subscriptionPlan.start.getTime() < Date.now();
+        },
+        id: {
+          type: Schema.Types.ObjectId,
+          ref: "Subscription",
+          required: function (this: IUser): boolean {
+            return this.subscriptionPlan.trialUsed;
+          },
+        },
+        start: {
+          type: Date,
+          required: true,
+        },
+        end: {
+          type: Date,
+          dafault: true,
+        },
+        isActive: {
+          type: Boolean,
+          default: true,
+        },
+      },
     },
   },
-  { timestamps: true }
+  { timestamps: true, collection: "Users" }
 );
 
 // Attach Mongoose Helpers
 MongooseHelper.preSaveHashPassword(UserSchema);
+MongooseHelper.preSaveConjugate<IUser>(UserSchema);
 MongooseHelper.comparePasswordIntoDb(UserSchema);
 MongooseHelper.findExistence<IUser>(UserSchema);
 MongooseHelper.applyToJSONTransform(UserSchema);
 
 // Export Model
-const User: Model<IUser> = model<IUser>("User", UserSchema);
+const User: Model<IUser> = Admin.discriminator<IUser>("User", UserSchema);
 export default User;
