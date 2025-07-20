@@ -52,7 +52,7 @@ const AdminSchema: Schema = new Schema<IAdmin>(
       default: false,
     },
   },
-  { timestamps: true, collection: "Users" }
+  { timestamps: true, collection: "users" }
 );
 
 // MongooseHelper.excludeFields(AdminSchema, ["firstName", "lastName"], "Admin");

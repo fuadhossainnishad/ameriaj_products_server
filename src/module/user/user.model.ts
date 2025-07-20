@@ -8,9 +8,9 @@ const isRequired = function (this: IUser): boolean {
   return !!this.firstName;
 };
 
-const isPlanRequired = function (this: IUser): boolean {
-  return !this.trial;
-};
+// const isPlanRequired = function (this: IUser): boolean {
+//   return !this.trial;
+// };
 
 // Schema
 export const UserSchema: Schema = new Schema<IUser>(
@@ -48,38 +48,41 @@ export const UserSchema: Schema = new Schema<IUser>(
       default: "",
     },
     subscriptionPlan: {
-      trial: {
-        type: Boolean,
-        required: true,
-      },
-      trialUsed: {
-        type: Boolean,
-        default: function (this: IUser): boolean {
-          return this.subscriptionPlan.start.getTime() < Date.now();
-        },
-        id: {
-          type: Schema.Types.ObjectId,
-          ref: "Subscription",
-          required: function (this: IUser): boolean {
-            return this.subscriptionPlan.trialUsed;
-          },
-        },
-        start: {
-          type: Date,
+      type: {
+        trial: {
+          type: Boolean,
           required: true,
         },
-        end: {
-          type: Date,
-          dafault: true,
-        },
-        isActive: {
+        trialUsed: {
           type: Boolean,
-          default: true,
+          default: function (this: IUser): boolean {
+            return this.subscriptionPlan.start.getTime() < Date.now();
+          },
+          id: {
+            type: Schema.Types.ObjectId,
+            ref: "Subscription",
+            required: function (this: IUser): boolean {
+              return this.subscriptionPlan.trialUsed;
+            },
+          },
+          start: {
+            type: Date,
+            required: true,
+          },
+          end: {
+            type: Date,
+            dafault: true,
+          },
+          isActive: {
+            type: Boolean,
+            default: true,
+          },
         },
       },
+      required: false,
     },
   },
-  { timestamps: true, collection: "Users" }
+  { timestamps: true, collection: "users" }
 );
 
 // Attach Mongoose Helpers
