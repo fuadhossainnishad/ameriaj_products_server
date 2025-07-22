@@ -1,4 +1,4 @@
-import { Document } from "mongoose";
+import { Types } from "mongoose";
 
 export interface IMedpro {
   name: string;
@@ -18,9 +18,9 @@ export interface IWeaponQualification extends IMedpro {
   qualificationLevel: TQualificationLevel;
 }
 export interface IPhysicalFitness
-  extends Omit<"IWeaponQualification", "qualification" | "score"> {}
+  extends Omit<IWeaponQualification, "qualificationLevel" | "score"> {}
 export interface IRangeQualification
-  extends Omit<"IWeaponQualification", "pass"> {}
+  extends Omit<IWeaponQualification, "pass"> {}
 
 export interface ICounseling extends IMedpro {
   nextDate: Date;
@@ -36,14 +36,27 @@ export interface IAdminUser extends Omit<IMedpro, "name" | "date"> {
   volunteerHour: number;
 }
 
-export interface IRecentActivity extends Document {
-  title: string;
+export interface ITrack {
+  medpro: IMedpro;
+  weaponQualification: IWeaponQualification;
+  physicalFitness: IPhysicalFitness;
+  rangeQualification: IRangeQualification;
+  counseling: ICounseling;
+  adminUser: IAdminUser;
 }
 
-export interface IReport extends Document {
-  title: string;
-}
-
-export type TAdminUpdate = Partial<IAdmin> & {
-  adminId: string;
+export type TTrackUpdate = Partial<ITrack> & {
+  trackId: Types.ObjectId;
 };
+
+// export interface IRecentActivity extends Document {
+//   title: string;
+// }
+
+// export interface IReport extends Document {
+//   title: string;
+// }
+
+// export type TAdminUpdate = Partial<IAdmin> & {
+//   adminId: string;
+// };
