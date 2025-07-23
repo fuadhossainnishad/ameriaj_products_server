@@ -10,6 +10,7 @@ import StripeRouter from "../module/stripe/stripe.routes";
 import NotificationRouter from "../module/notification/notification.routes";
 import SettingsRouter from "../module/settings/settings.routes";
 import SubscriptionRouter from "../module/subscription/subscription.routes";
+import TrackRouter from "../module/track/track.routes";
 
 const router = express.Router();
 
@@ -21,7 +22,7 @@ const moduleRoutes = [
   { path: "/admin", route: AdminRouter },
   { path: "/car", route: CarRouter },
   { path: "/settings", route: SettingsRouter },
-  { path: "/review", route: ReviewRouter },
+  { path: "/track", route: TrackRouter },
   { path: "/order", route: ReviewRouter },
   { path: "/subscription", route: SubscriptionRouter },
   { path: "/payment", route: StripeRouter },

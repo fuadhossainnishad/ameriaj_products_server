@@ -1,19 +1,17 @@
 import express from "express";
-import AdminController from "./track.controller";
+import TrackController from "./track.controller";
 
 const router = express.Router();
 
-router.get(
-  "/get_admin",
+router.route("/").post(TrackController.insertTrack).get(
   //   validationRequest(AuthValidationSchema.playerSignUpValidation),
-  AdminController.getAdmin
+  TrackController.getTrack
 );
 
-router.patch(
-  "/update_admin",
+router.route("/:id").patch(
   //   validationRequest(AuthValidationSchema.playerSignUpValidation),
-  AdminController.updateAdmin
+  TrackController.updateTrack
 );
 
-const AdminRouter = router;
-export default AdminRouter;
+const TrackRouter = router;
+export default TrackRouter;

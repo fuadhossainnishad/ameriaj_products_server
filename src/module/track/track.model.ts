@@ -4,9 +4,10 @@ import {
   IMedpro,
   IPhysicalFitness,
   IRangeQualification,
-  ITrack,
   IWeaponQualification,
   TQualificationLevel,
+  TTrack,
+  TTrackType,
 } from "./track.interface";
 
 // const isRequired = function (this: IAdmin): boolean {
@@ -15,6 +16,10 @@ import {
 
 const MedproSchema: Schema = new Schema<IMedpro>(
   {
+    type: {
+      type: String,
+      required: false,
+    },
     name: {
       type: String,
       required: true,
@@ -40,6 +45,11 @@ const WeaponQualificationSchema: Schema = new Schema<IWeaponQualification>({
     type: Number,
     required: true,
   },
+  qualificationLevel: {
+    type: String,
+    enum: Object.values(TQualificationLevel),
+    required: true,
+  },
 }).add(MedproSchema);
 
 const PhysicalFitnessSchema: Schema = new Schema<IPhysicalFitness>({
@@ -50,7 +60,15 @@ const PhysicalFitnessSchema: Schema = new Schema<IPhysicalFitness>({
 }).add(MedproSchema);
 
 const RangeQualificationSchema: Schema = new Schema<IRangeQualification>({
-  qualificationLevel: Object.values(TQualificationLevel),
+  qualificationLevel: {
+    type: String,
+    enum: Object.values(TQualificationLevel),
+    required: true,
+  },
+  score: {
+    type: Number,
+    required: true,
+  },
 }).add(PhysicalFitnessSchema);
 
 const CounselingSchema: Schema = new Schema({
@@ -95,16 +113,43 @@ const AdminUserSchema: Schema = new Schema({
   },
 }).add(MedproSchema);
 
+const TrackTypeSchemaList = {
+  medpro: MedproSchema,
+  weaponQualification: WeaponQualificationSchema,
+  physicalFitness: PhysicalFitnessSchema,
+  rangeQualification: RangeQualificationSchema,
+  counseling: CounselingSchema,
+  adminUser: AdminUserSchema,
+};
+
 const TrackSchema: Schema = new Schema({
-  medpro: { type: MedproSchema, required: false },
-  weaponQualification: { type: WeaponQualificationSchema, required: false },
-  physicalFitness: { type: PhysicalFitnessSchema, required: false },
-  rangeQualification: { type: RangeQualificationSchema, required: false },
-  counseling: { type: CounselingSchema, required: false },
-  adminUser: { type: AdminUserSchema, required: false },
+  trackType: {
+    type: String,
+    enum: Object.values(TTrackType),
+    required: true,
+  },
+  ...Object.fromEntries(
+    Object.entries(TrackTypeSchemaList).map(([key, schema]) => [
+      key,
+      {
+        type: schema,
+        required: function (this: TTrack): boolean {
+          return this.trackType === key;
+        },
+      },
+    ])
+  ),
 });
 
 // MongooseHelper.excludeFields(AdminSchema, ["firstName", "lastName"], "Admin");
 MongooseHelper.applyToJSONTransform(TrackSchema);
-const Track: Model<ITrack> = model<ITrack>("Track", TrackSchema);
+TrackSchema.index({
+  medpro: "text",
+  weaponQualification: "text",
+  physicalFitness: "text",
+  rangeQualification: "text",
+  counseling: "text",
+  adminUser: "text",
+});
+const Track: Model<TTrack> = model<TTrack>("Track", TrackSchema);
 export default Track;

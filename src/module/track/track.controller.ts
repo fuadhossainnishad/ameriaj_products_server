@@ -4,33 +4,50 @@ import catchAsync from "../../utility/catchAsync";
 import AppError from "../../app/error/AppError";
 import sendResponse from "../../utility/sendResponse";
 import GenericService from "../../utility/genericService.helpers";
-import { idConverter } from "../../utility/idConverter";
-import Admin from "./track.model";
-import { IAdmin } from "./track.interface";
-import AdminServices from "./track.services";
 import NotificationServices from "../notification/notification.service";
+import Track from "./track.model";
+import { TTrack } from "./track.interface";
+import { idConverter } from "../../utility/idConverter";
 
-const getAdmin: RequestHandler = catchAsync(async (req, res) => {
-  const { adminId } = req.body.data;
-  console.log("adminId: ", adminId.toString());
-
-  if (!adminId) {
-    throw new AppError(httpStatus.BAD_REQUEST, "Admin ID is required", "");
+const insertTrack: RequestHandler = catchAsync(async (req, res) => {
+  const result = await GenericService.insertResources<TTrack>(
+    Track,
+    req.body.data
+  );
+  if (!result) {
+    throw new AppError(httpStatus.NOT_FOUND, "Track data not inserted", "");
   }
-  const result = await GenericService.findResources<IAdmin>(
-    Admin,
-    await idConverter(adminId)
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.CREATED,
+    message: "successfully retrieve track data",
+    data: result,
+  });
+});
+
+const getTrack: RequestHandler = catchAsync(async (req, res) => {
+  const result = await GenericService.findAllResources<TTrack>(
+    Track,
+    req.query,
+    [
+      "medpro",
+      "weaponQualification",
+      "physicalFitness",
+      "rangeQualification",
+      "counseling",
+      "adminUser",
+    ]
   );
 
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.CREATED,
-    message: "successfully retrieve admin data",
+    message: "successfully retrieve track data",
     data: result,
   });
 });
 
-const updateAdmin: RequestHandler = catchAsync(async (req, res) => {
+const updateTrack: RequestHandler = catchAsync(async (req, res) => {
   if (!req.user) {
     throw new AppError(httpStatus.UNAUTHORIZED, "User not authenticated", "");
   }
@@ -41,7 +58,11 @@ const updateAdmin: RequestHandler = catchAsync(async (req, res) => {
     throw new AppError(httpStatus.BAD_REQUEST, "adminId is required", "");
   }
   req.body.data.adminId = adminId;
-  const result = await AdminServices.updateAdminService(req.body.data);
+  const result = await GenericService.updateResources(
+    Track,
+    await idConverter(req.params.id),
+    req.body.data
+  );
 
   await NotificationServices.sendNoification({
     ownerId: req.user?._id,
@@ -62,9 +83,12 @@ const updateAdmin: RequestHandler = catchAsync(async (req, res) => {
   });
 });
 
-const AdminController = {
-  getAdmin,
-  updateAdmin,
+
+
+const TrackController = {
+  insertTrack,
+  getTrack,
+  updateTrack,
 };
 
-export default AdminController;
+export default TrackController;

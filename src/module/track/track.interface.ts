@@ -1,6 +1,7 @@
 import { Types } from "mongoose";
 
 export interface IMedpro {
+  type?: string;
   name: string;
   date: Date;
   isDeleted: boolean;
@@ -17,10 +18,13 @@ export interface IWeaponQualification extends IMedpro {
   score: number;
   qualificationLevel: TQualificationLevel;
 }
-export interface IPhysicalFitness
-  extends Omit<IWeaponQualification, "qualificationLevel" | "score"> {}
-export interface IRangeQualification
-  extends Omit<IWeaponQualification, "pass"> {}
+export interface IPhysicalFitness extends IMedpro {
+  pass: boolean;
+}
+export interface IRangeQualification extends IMedpro {
+  score: number;
+  qualificationLevel: TQualificationLevel;
+}
 
 export interface ICounseling extends IMedpro {
   nextDate: Date;
@@ -35,8 +39,7 @@ export interface IAdminUser extends Omit<IMedpro, "name" | "date"> {
   educationCivilian: string;
   volunteerHour: number;
 }
-
-export interface ITrack {
+export interface ITrackType {
   medpro: IMedpro;
   weaponQualification: IWeaponQualification;
   physicalFitness: IPhysicalFitness;
@@ -44,19 +47,25 @@ export interface ITrack {
   counseling: ICounseling;
   adminUser: IAdminUser;
 }
+export enum TTrackType {
+  medpro = "medpro",
+  weaponQualification = "weaponQualification",
+  physicalFitness = "physicalFitness",
+  rangeQualification = "rangeQualification",
+  counseling = "counseling",
+  adminUser = "adminUser",
+}
 
-export type TTrackUpdate = Partial<ITrack> & {
-  trackId: Types.ObjectId;
+export type TrackBase<K extends keyof ITrackType> = {
+  trackType: K;
+} & {
+  [P in K]: ITrackType[K];
 };
 
-// export interface IRecentActivity extends Document {
-//   title: string;
-// }
+export type TTrack = {
+  [K in keyof ITrackType]: TrackBase<K>;
+}[keyof ITrackType];
 
-// export interface IReport extends Document {
-//   title: string;
-// }
-
-// export type TAdminUpdate = Partial<IAdmin> & {
-//   adminId: string;
-// };
+export type TTrackUpdate = Partial<TTrack> & {
+  trackId: Types.ObjectId;
+};
