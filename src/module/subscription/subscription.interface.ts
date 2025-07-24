@@ -6,7 +6,7 @@ export interface ISubscription {
   createdAt: Date;
   updatedAt: Date;
 }
-export type Subscription = Partial<ISubscription>;
+export type TSubscription = Partial<ISubscription>;
 
 export type TSubscriptionUpdate = Partial<ISubscription> & {
   subscriptionId: string;

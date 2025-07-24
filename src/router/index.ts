@@ -1,5 +1,4 @@
 import AuthRouter from "../module/auth/auth.routes";
-import CarRouter from "../module/car/car.routes";
 import HealthRouter from "../module/health/health.routes";
 import express from "express";
 import UserRouter from "../module/user/user.routes";
@@ -11,6 +10,7 @@ import NotificationRouter from "../module/notification/notification.routes";
 import SettingsRouter from "../module/settings/settings.routes";
 import SubscriptionRouter from "../module/subscription/subscription.routes";
 import TrackRouter from "../module/track/track.routes";
+import AppointmentRouter from "../module/appointment/appointment.routes";
 
 const router = express.Router();
 
@@ -20,7 +20,7 @@ const moduleRoutes = [
   { path: "/user", route: UserRouter },
   { path: "/vendor", route: VendorRouter },
   { path: "/admin", route: AdminRouter },
-  { path: "/car", route: CarRouter },
+  { path: "/appointment", route: AppointmentRouter },
   { path: "/settings", route: SettingsRouter },
   { path: "/track", route: TrackRouter },
   { path: "/order", route: ReviewRouter },
