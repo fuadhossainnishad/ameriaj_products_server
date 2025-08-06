@@ -2,6 +2,7 @@ export interface IAppointment {
   dateTime: Date;
   details: string;
   location: string;
+  type: string;
   createdAt: Date;
   updatedAt: Date;
 }

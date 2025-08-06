@@ -68,7 +68,7 @@ const getAllAppointment: RequestHandler = catchAsync(async (req, res) => {
   const result = await GenericService.findAllResources<IAppointment>(
     Appointment,
     req.query,
-    ["date", "time", "details", "location"]
+    ["date", "time", "details", "location","type"]
   );
 
   sendResponse(res, {

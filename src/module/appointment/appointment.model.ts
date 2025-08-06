@@ -1,7 +1,6 @@
 import { model, Model, Schema } from "mongoose";
 import { IAppointment } from "./appointment.interface";
 import MongooseHelper from "../../utility/mongoose.helpers";
-import { dateRegex, timeRegex } from "../../constants/regex.constants";
 
 const AppointmentSchema: Schema = new Schema<IAppointment>(
   {
@@ -15,6 +14,10 @@ const AppointmentSchema: Schema = new Schema<IAppointment>(
     },
 
     location: {
+      type: String,
+      required: true,
+    },
+    type: {
       type: String,
       required: true,
     },

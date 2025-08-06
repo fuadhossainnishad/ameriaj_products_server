@@ -128,7 +128,10 @@ const updatePassword: RequestHandler = catchAsync(async (req, res) => {
     throw new AppError(httpStatus.UNAUTHORIZED, "User not authenticated", "");
   }
   const userId = req.user?._id;
-  const result = await AuthServices.updatePasswordService({...req.body.data, userId: userId?.toString()});
+  const result = await AuthServices.updatePasswordService({
+    ...req.body.data,
+    userId: userId?.toString(),
+  });
   // await NotificationServices.sendNoification({
   //   ownerId: req.user?._id,
   //   key: "notification",
