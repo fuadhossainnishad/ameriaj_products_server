@@ -5,26 +5,21 @@ import { fileHandle } from "../../middleware/fileHandle";
 
 const router = express.Router();
 
-router.get(
-  "/get_user",
-  //   validationRequest(AuthValidationSchema.playerSignUpValidation),
-  UserController.getUser
-);
-router.get(
-  "/get_all_user",
-  //   validationRequest(AuthValidationSchema.playerSignUpValidation),
-  UserController.getAllUser
-);
-router.patch(
-  "/update_user",
-  upload.fields([{ name: "photo", maxCount: 1 }]),
-  fileHandle("photo"),
-  //   validationRequest(AuthValidationSchema.playerSignUpValidation),
-  UserController.updateUser
-);
+router
+  .route("/")
+  .get(
+    //   validationRequest(AuthValidationSchema.playerSignUpValidation),
+    UserController.getUser
+  )
+  .patch(
+    upload.fields([{ name: "photo", maxCount: 1 }]),
+    fileHandle("photo"),
+    //   validationRequest(AuthValidationSchema.playerSignUpValidation),
+    UserController.updateUser
+  );
 
 router.delete(
-  "/delete_user",
+  "/:id",
   //   validationRequest(AuthValidationSchema.playerSignUpValidation),
   UserController.deleteUser
 );

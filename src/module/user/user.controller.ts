@@ -10,26 +10,26 @@ import { idConverter } from "../../utility/idConverter";
 import UserServices from "./user.services";
 import NotificationServices from "../notification/notification.service";
 
+// const getUser: RequestHandler = catchAsync(async (req, res) => {
+//   const { userId } = req.query;
+//   console.log("carId: ", userId!);
+
+//   if (!userId || typeof userId !== "string") {
+//     throw new AppError(httpStatus.BAD_REQUEST, "User ID is required", "");
+//   }
+//   const result = await GenericService.findResources<IUser>(
+//     User,
+//     await idConverter(userId)
+//   );
+//   sendResponse(res, {
+//     success: true,
+//     statusCode: httpStatus.CREATED,
+//     message: "successfully retrieve user data",
+//     data: result,
+//   });
+// });
+
 const getUser: RequestHandler = catchAsync(async (req, res) => {
-  const { userId } = req.query;
-  console.log("carId: ", userId!);
-
-  if (!userId || typeof userId !== "string") {
-    throw new AppError(httpStatus.BAD_REQUEST, "User ID is required", "");
-  }
-  const result = await GenericService.findResources<IUser>(
-    User,
-    await idConverter(userId)
-  );
-  sendResponse(res, {
-    success: true,
-    statusCode: httpStatus.CREATED,
-    message: "successfully retrieve user data",
-    data: result,
-  });
-});
-
-const getAllUser: RequestHandler = catchAsync(async (req, res) => {
   const result = await GenericService.findAllResources<IUser>(User, req.query, [
     "email",
     "userName",
@@ -110,7 +110,6 @@ const deleteUser: RequestHandler = catchAsync(async (req, res) => {
 
 const UserController = {
   getUser,
-  getAllUser,
   updateUser,
   deleteUser,
 };

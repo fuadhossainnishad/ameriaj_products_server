@@ -12,7 +12,7 @@ import path from "path";
 
 const app = express();
 // const allowedOrigins = ["http://192.168.56.1:3000", "*"];
-const allowedOrigins = ["http://localhost:3000"];
+const allowedOrigins = ["http://localhost:3002"];
 
 export const httpServer = createServer(app);
 socketio(httpServer);
@@ -35,7 +35,7 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'", "http://localhost:3000"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "http://localhost:3002"],
       },
     },
   })
