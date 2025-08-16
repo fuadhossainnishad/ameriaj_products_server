@@ -5,8 +5,8 @@ import { IWebhooks } from "./stripe.interface";
 import config from "../../app/config";
 import AppError from "../../app/error/AppError";
 import Stripe from "stripe";
-import Order from "../order/order.model";
 import Payment from "../payment/payment.model";
+import Subscription from "../subscription/subscription.model";
 
 export const handleStripeWebhook = async (payload: IWebhooks) => {
   const { rawbody, sig } = payload;
@@ -20,7 +20,7 @@ export const handleStripeWebhook = async (payload: IWebhooks) => {
   }
   const paymentIntent = event.data.object as Stripe.PaymentIntent;
   const orderId = paymentIntent.metadata.orderId;
-  const updateOrderStatus = await Order.findByIdAndUpdate(
+  const updateOrderStatus = await Subscription.findByIdAndUpdate(
     await idConverter(orderId),
     { status: "accept" },
     { new: true }

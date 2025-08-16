@@ -11,7 +11,8 @@ const createPaymentIntentService = async (payload: IPaymentIntent) => {
       enabled: true,
     },
     metadata: {
-      orderId: payload.orderId,
+      subscriptionId: payload.subscriptionId,
+      userId: payload.userId,
     },
   });
   if (!paymentIntent) {

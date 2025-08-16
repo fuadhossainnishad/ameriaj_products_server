@@ -2,10 +2,20 @@ import { Types } from "mongoose";
 import { IAdmin } from "../admin/admin.interface";
 import { ISignup } from "../auth/auth.interface";
 
+export interface ITrial {
+  active: boolean;
+  length: number;
+  start: Date;
+  end: Date;
+}
+
+export interface IPaid extends ITrial {
+  subscriptionId: Types.ObjectId;
+}
 export interface SubscriptionPlan {
-  trial: boolean;
+  trial: ITrial;
   trialUsed: boolean;
-  id: Types.ObjectId;
+  paid: IPaid;
   start: Date;
   end: Date;
   isActive: boolean;

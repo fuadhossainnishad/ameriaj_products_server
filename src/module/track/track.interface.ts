@@ -1,7 +1,18 @@
 import { Types } from "mongoose";
 
+export enum TMedpro {
+  vision = "vision",
+  immunization = "immunization",
+  hearing = "hearing",
+  dental = "dental",
+  dlc = "dlc",
+  hiv = "hiv",
+  pha = "pha",
+  dna = "dna",
+}
+
 export interface IMedpro {
-  type?: string;
+  type?: TMedpro;
   name: string;
   date: Date;
   isDeleted: boolean;

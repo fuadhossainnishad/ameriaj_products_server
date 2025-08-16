@@ -7,7 +7,8 @@ export type TCheckout = {
 };
 
 export interface IPaymentIntent {
-  orderId: string;
+  userId: string;
+  subscriptionId: string;
   amount: number;
   currency: string;
 }
@@ -17,8 +18,13 @@ export interface IWebhooks {
   rawbody: Buffer;
 }
 
+export enum TPaymentStatus {
+  pending = "pending",
+  accept = "accept",
+  reject = "reject",
+}
 export interface IPayment {
-  orderId: Types.ObjectId;
+  subscriptionId: Types.ObjectId;
   amount: number;
   currency: string;
   status: string;

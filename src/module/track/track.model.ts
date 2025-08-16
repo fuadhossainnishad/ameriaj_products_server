@@ -5,6 +5,7 @@ import {
   IPhysicalFitness,
   IRangeQualification,
   IWeaponQualification,
+  TMedpro,
   TQualificationLevel,
   TTrack,
   TTrackType,
@@ -18,6 +19,7 @@ const MedproSchema: Schema = new Schema<IMedpro>(
   {
     type: {
       type: String,
+      enum: Object.values(TMedpro),
       required: false,
     },
     name: {

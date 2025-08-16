@@ -58,13 +58,6 @@ export const UserSchema: Schema = new Schema<IUser>(
           default: function (this: IUser): boolean {
             return this.subscriptionPlan.start.getTime() < Date.now();
           },
-          id: {
-            type: Schema.Types.ObjectId,
-            ref: "Subscription",
-            required: function (this: IUser): boolean {
-              return this.subscriptionPlan.trialUsed;
-            },
-          },
           start: {
             type: Date,
             required: true,
@@ -79,7 +72,7 @@ export const UserSchema: Schema = new Schema<IUser>(
           },
         },
       },
-      required: false,
+      required: true,
     },
   },
   { timestamps: true, collection: "users" }
