@@ -1,0 +1,39 @@
+import { Types } from "mongoose";
+export type TCheckout = {
+  carId: string;
+  vendorId: string;
+  orderId: string;
+  amount: number;
+};
+
+export interface IPaymentIntent {
+  userId: string;
+  subscriptionId: string;
+  amount: number;
+  currency: string;
+}
+
+export interface IWebhooks {
+  sig: string;
+  rawbody: Buffer;
+}
+
+export enum TPaymentStatus {
+  pending = "pending",
+  accept = "accept",
+  reject = "reject",
+}
+export interface IPayment {
+  subscriptionId: Types.ObjectId;
+  amount: number;
+  currency: string;
+  status: string;
+  method: string;
+  paymentIntentId: string;
+}
+
+export interface ICreateSubscription {
+  stripe_customer_id: string;
+  trialEnd: number
+  userId: string
+}
