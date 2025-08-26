@@ -1,12 +1,13 @@
-import { httpStatus } from 'http-status';
+import httpStatus from 'http-status';
 // import httpStatus from "http-status";
 // import AppError from "../../app/error/AppError";
 // import { idConverter } from "../../utility/idConverter";
 // import Insurance from "./subscription.model";
 
 import AppError from "../../app/error/AppError";
-import StripeUtils from "../../utility/stripe.utils";
 import { IUser } from "../user/user.interface";
+import StripeServices from '../stripe/stripe.service';
+import stripe from '../../app/config/stripe.config';
 
 // const updateSubscriptionService = async (payload: TInsuranceUpdate) => {
 //   const { insuranceId, ...updateData } = payload;
@@ -32,7 +33,7 @@ const trialService = async <T extends IUser>(payload: T) => {
     if (subscriptionPlan.trialUsed === true) {
         throw new AppError(httpStatus.EXPECTATION_FAILED, "Trial have used try paid one")
     }
-
+const freeTrial = await StripeServices.create
 
 }
 const SubscriptionServices = {

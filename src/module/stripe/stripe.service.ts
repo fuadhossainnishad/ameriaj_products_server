@@ -60,11 +60,15 @@ const createSubscription = async (payload: IUser) => {
     trial_end: Math.floor(trialEnd.getTime() / 1000),  // Set trial end date
     metadata: { userId: user._id.toString() },
   })
+  if (!stripeSubscription || !stripeSubscription.id) {
+    throw new AppError(httpStatus.BAD_REQUEST, "Something error happened, try again later")
+  }
 }
 
 const StripeServices = {
   createPaymentIntentService,
   createStripeProductId,
-  createStripePriceId
+  createStripePriceId,
+  createSubscription
 };
 export default StripeServices;
