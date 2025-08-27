@@ -32,8 +32,8 @@ export interface IPayment {
   paymentIntentId: string;
 }
 
-export interface ICreateSubscription {
+export interface ICreateFreeSubscription {
+  userId: Types.ObjectId;
   stripe_customer_id: string;
-  trialEnd: number
-  userId: string
+  trialEnd: Date
 }

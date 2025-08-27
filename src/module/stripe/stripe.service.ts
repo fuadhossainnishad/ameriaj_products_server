@@ -1,9 +1,8 @@
 import httpStatus from "http-status";
 import stripe from "../../app/config/stripe.config";
 import AppError from "../../app/error/AppError";
-import { IPaymentIntent } from "./stripe.interface";
+import { ICreateFreeSubscription, IPaymentIntent } from "./stripe.interface";
 import { ISubscription } from "../subscription/subscription.interface";
-import { IUser } from "../user/user.interface";
 
 const createPaymentIntentService = async (payload: IPaymentIntent) => {
   const paymentIntent = await stripe.paymentIntents.create({
@@ -53,16 +52,17 @@ const createStripePriceId = async (payload: ISubscription): Promise<string> => {
   return stripe_price.id
 }
 
-const createSubscription = async (payload: IUser) => {
+const createSubscription = async (payload: ICreateFreeSubscription) => {
   const stripeSubscription = await stripe.subscriptions.create({
     customer: payload.stripe_customer_id,
     items: [],
-    trial_end: Math.floor(trialEnd.getTime() / 1000),  // Set trial end date
-    metadata: { userId: user._id.toString() },
+    trial_end: Math.floor(payload.trialEnd.getTime() / 1000),
+    metadata: { userId: payload.userId.toString() },
   })
   if (!stripeSubscription || !stripeSubscription.id) {
     throw new AppError(httpStatus.BAD_REQUEST, "Something error happened, try again later")
   }
+  return stripeSubscription.id;
 }
 
 const StripeServices = {

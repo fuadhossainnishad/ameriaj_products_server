@@ -33,7 +33,7 @@ const trialService = async <T extends IUser>(payload: T) => {
     if (subscriptionPlan.trialUsed === true) {
         throw new AppError(httpStatus.EXPECTATION_FAILED, "Trial have used try paid one")
     }
-const freeTrial = await StripeServices.create
+const freeTrial = await StripeServices.createSubscription(payload)
 
 }
 const SubscriptionServices = {
