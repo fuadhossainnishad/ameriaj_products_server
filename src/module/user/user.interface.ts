@@ -16,5 +16,5 @@ export interface IUser extends ISignup, IAdmin {
 }
 
 export type TUserUpdate = Partial<IUser> & {
-  userId: string;
+  id: string;
 };

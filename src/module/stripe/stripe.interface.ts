@@ -33,7 +33,7 @@ export interface IPayment {
 }
 
 export interface ICreateFreeSubscription {
-  userId: Types.ObjectId;
+  _id: Types.ObjectId;
   stripe_customer_id: string;
   trialEnd: Date
 }

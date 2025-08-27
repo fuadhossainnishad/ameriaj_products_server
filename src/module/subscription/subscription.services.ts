@@ -7,7 +7,7 @@ import httpStatus from 'http-status';
 import AppError from "../../app/error/AppError";
 import { IUser } from "../user/user.interface";
 import StripeServices from '../stripe/stripe.service';
-import stripe from '../../app/config/stripe.config';
+import { Types } from 'mongoose';
 
 // const updateSubscriptionService = async (payload: TInsuranceUpdate) => {
 //   const { insuranceId, ...updateData } = payload;
@@ -28,13 +28,17 @@ import stripe from '../../app/config/stripe.config';
 
 
 
-const trialService = async <T extends IUser>(payload: T) => {
+const trialService = async <T extends IUser & { _id: Types.ObjectId }>(payload: T) => {
     const { subscriptionPlan } = payload;
     if (subscriptionPlan.trialUsed === true) {
         throw new AppError(httpStatus.EXPECTATION_FAILED, "Trial have used try paid one")
     }
-const freeTrial = await StripeServices.createSubscription(payload)
-
+    const { _id, stripe_customer_id, trialEnd, } = payload
+    const freeTrial_id = await StripeServices.createSubscription({ _id, stripe_customer_id, trialEnd })
+    if (!freeTrial_id) {
+        throw new AppError(httpStatus.BAD_REQUEST, "Something error happened, try again later")
+    }
+    return freeTrial_id
 }
 const SubscriptionServices = {
     trialService

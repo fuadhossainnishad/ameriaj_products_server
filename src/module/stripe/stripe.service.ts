@@ -57,7 +57,7 @@ const createSubscription = async (payload: ICreateFreeSubscription) => {
     customer: payload.stripe_customer_id,
     items: [],
     trial_end: Math.floor(payload.trialEnd.getTime() / 1000),
-    metadata: { userId: payload.userId.toString() },
+    metadata: { id: payload._id.toString() },
   })
   if (!stripeSubscription || !stripeSubscription.id) {
     throw new AppError(httpStatus.BAD_REQUEST, "Something error happened, try again later")

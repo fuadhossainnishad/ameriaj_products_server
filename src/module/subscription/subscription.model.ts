@@ -7,6 +7,10 @@ import MongooseHelper from "../../utility/mongoose.helpers";
 
 const BaseSchemaOptions = new Schema<IBase>(
   {
+    stripe_subscription_id: {
+      type: String,
+      required: true,
+    },
     length: {
       type: Number,
       default: 30,
@@ -35,10 +39,7 @@ const TrialSchema = new Schema<ITrial>(
 
 const PaidSchema = new Schema<IPaid>(
   {
-    stripe_subscription_id: {
-      type: String,
-      required: true,
-    },
+
     status: {
       type: String,
       enum: Object.values(PaidStatus),

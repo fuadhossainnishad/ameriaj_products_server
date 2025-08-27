@@ -1,8 +1,8 @@
 import { Subtype } from "aws-sdk/clients/connect";
-import { Interval } from "date-fns";
 import { Types } from "mongoose";
 
 export interface IBase {
+  stripe_subscription_id: string;
   length: number;
   start: Date;
   end: Date;
@@ -26,7 +26,6 @@ export enum SubType {
 }
 
 export interface IPaid extends IBase {
-  stripe_subscription_id: string;
   status: PaidStatus;
   subscription_id: Types.ObjectId;
 }
@@ -41,9 +40,7 @@ export interface ISubscriptionPlan {
 
 export enum SubStatus {
   ACTIVE = "active",
-  TRIALING = "trialing",
-  Paid = "paid",
-  NONE = "none",
+  INACTIVE = "inactive",
 }
 export enum IntervalType {
   MONTH = 'month',

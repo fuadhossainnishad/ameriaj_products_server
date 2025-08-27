@@ -6,13 +6,14 @@ import sendResponse from "../../utility/sendResponse";
 import GenericService from "../../utility/genericService.helpers";
 import { idConverter } from "../../utility/idConverter";
 import NotificationServices from "../notification/notification.service";
-import Subscription from "./subscription.model";
-import { ISubscription } from "./subscription.interface";
+import Subscription from './subscription.model';
+import { ISubscription, SubStatus, SubType } from "./subscription.interface";
 import User from "../user/user.model";
 import StripeUtils from "../../utility/stripe.utils";
 import { IUser } from "../user/user.interface";
 import SubscriptionServices from "./subscription.services";
 import StripeServices from "../stripe/stripe.service";
+import { Types } from "mongoose";
 
 const createSubscription: RequestHandler = catchAsync(async (req, res) => {
   // if (req.user?.role !== "Admin") {
@@ -171,7 +172,7 @@ const deleteSubscription: RequestHandler = catchAsync(async (req, res) => {
 });
 
 const TrialSubscription: RequestHandler = catchAsync(async (req, res) => {
-  const { role, email, id, stripe_customer_id, } = req.user;
+  const { role, email, id, stripe_customer_id, sub_status } = req.user;
   if (role !== "User" || !email || !id) {
     throw new AppError(
       httpStatus.BAD_REQUEST,
@@ -183,12 +184,32 @@ const TrialSubscription: RequestHandler = catchAsync(async (req, res) => {
     const customer_id = await StripeUtils.CreateCustomerId(email);
     req.user = await GenericService.updateResources<IUser>(User, id, { stripe_customer_id: customer_id })
   }
-  const result = await SubscriptionServices.trialService<IUser>(req.user)
+  const { subscriptionPlan } = req.user
+  if (subscriptionPlan.subType !== "none" && !subscriptionPlan.trialUsed) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      "You have already used your trial subscription",
+      ""
+    );
+  }
+
+  subscriptionPlan.trial.start = new Date()
+  subscriptionPlan.trial.end = new Date(subscriptionPlan.trial.start.getTime() + 30 * 24 * 60 * 60 * 1000)
+
+  const result = await SubscriptionServices.trialService<IUser & { _id: Types.ObjectId }>(req.user)
+  subscriptionPlan.trial.stripe_subscription_id = result.id
+  subscriptionPlan.subType = SubType.TRIAL
+  subscriptionPlan.trial.active = true
+  subscriptionPlan.isActive = true
+  req.user.sub_status = SubStatus.ACTIVE
+
+  const updateUser = await GenericService.updateResources<IUser>(User, id, req.user)
+
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.CREATED,
     message: "successfully get trial subscription",
-    data: result,
+    data: updateUser,
   });
 })
 

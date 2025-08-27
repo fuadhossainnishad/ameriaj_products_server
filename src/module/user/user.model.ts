@@ -61,7 +61,7 @@ export const UserSchema: Schema = new Schema<IUser>(
     sub_status: {
       type: String,
       enum: Object.values(SubStatus),
-      default: SubStatus.NONE,
+      default: SubStatus.INACTIVE,
       required: true,
     },
     last_login: {
