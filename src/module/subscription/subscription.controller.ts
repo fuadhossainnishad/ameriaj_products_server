@@ -172,7 +172,7 @@ const deleteSubscription: RequestHandler = catchAsync(async (req, res) => {
 });
 
 const TrialSubscription: RequestHandler = catchAsync(async (req, res) => {
-  const { role, email, id, stripe_customer_id, sub_status } = req.user;
+  const { role, email, id, stripe_customer_id } = req.user;
   if (role !== "User" || !email || !id) {
     throw new AppError(
       httpStatus.BAD_REQUEST,
@@ -197,7 +197,7 @@ const TrialSubscription: RequestHandler = catchAsync(async (req, res) => {
   subscriptionPlan.trial.end = new Date(subscriptionPlan.trial.start.getTime() + 30 * 24 * 60 * 60 * 1000)
 
   const result = await SubscriptionServices.trialService<IUser & { _id: Types.ObjectId }>(req.user)
-  subscriptionPlan.trial.stripe_subscription_id = result.id
+  subscriptionPlan.trial.stripe_subscription_id = result
   subscriptionPlan.subType = SubType.TRIAL
   subscriptionPlan.trial.active = true
   subscriptionPlan.isActive = true
@@ -213,13 +213,56 @@ const TrialSubscription: RequestHandler = catchAsync(async (req, res) => {
   });
 })
 
+const PaidSubscription: RequestHandler = catchAsync(async (req, res) => {
+  const { role, email, id, stripe_customer_id } = req.user;
+  if (role !== "User" || !email || !id) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      "Only valid user can have paid subscription",
+      ""
+    );
+  }
+  if (stripe_customer_id == "") {
+    const customer_id = await StripeUtils.CreateCustomerId(email);
+    req.user = await GenericService.updateResources<IUser>(User, id, { stripe_customer_id: customer_id })
+  }
+  const { subscriptionPlan } = req.user
+  // if (subscriptionPlan.subType === "paid" && subscriptionPlan.paid.status === "active") {
+  //   throw new AppError(
+  //     httpStatus.BAD_REQUEST,
+  //     "You have already used your paid subscription",
+  //     ""
+  //   );
+  // }
+
+  const result = await SubscriptionServices.paidService<IUser & { _id: Types.ObjectId }>(req.user, req.body.data.subscriptionId)
+  subscriptionPlan.paid.subscription_id = new Types.ObjectId(req.body.data.subscriptionId)
+  subscriptionPlan.paid.status = result.status
+  subscriptionPlan.paid.start = new Date()
+  subscriptionPlan.paid.end = new Date(subscriptionPlan.paid.start.getTime() + req.body.data.length * 24 * 60 * 60 * 1000)
+  subscriptionPlan.paid.length = req.body.data.length
+  subscriptionPlan.subType = SubType.PAID
+  subscriptionPlan.isActive = true
+  req.user.sub_status = SubStatus.ACTIVE
+
+  const updateUser = await GenericService.updateResources<IUser>(User, id, req.user)
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.CREATED,
+    message: "successfully get paid subscription",
+    data: updateUser,
+  });
+})
+
 const SubscriptionController = {
   createSubscription,
   getSubscription,
   getAllSubscription,
   updateSubscription,
   deleteSubscription,
-  TrialSubscription
+  TrialSubscription,
+  PaidSubscription
 };
 
 export default SubscriptionController;
