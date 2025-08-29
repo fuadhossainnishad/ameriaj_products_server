@@ -22,7 +22,7 @@ const createPaymentIntentService = async (payload: IPaymentIntent) => {
       "There is a problem on payment building"
     );
   }
-  return { clientSecret: paymentIntent.client_secret };
+  return {clientSecret: paymentIntent.client_secret };
 };
 
 const createStripeProductId = async (name: string, description: string): Promise<string> => {
