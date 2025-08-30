@@ -1,21 +1,23 @@
 import httpStatus from "http-status";
 import AppError from "../../app/error/AppError";
-import config from "../../app/config";
 import { sendMail } from "../../app/mailer/sendMail";
 import { emailRegex } from "../../constants/regex.constants";
 import { idConverter } from "../../utility/idConverter";
-import { jwtHelpers } from "../../app/jwtHelpers/jwtHelpers";
-import { ISignIn } from "./auth.interface";
+import { IJwtPayload, ISignIn } from "./auth.interface";
 import User from "../user/user.model";
 import { TResetPassword, TUpdatePassword, TVerifyOtp } from "./auth.constant";
 import Otp from "./auth.model";
+import config from "../../app/config";
+import { jwtHelpers } from "../../app/jwtHelpers/jwtHelpers";
 
 const loginService = async (payload: ISignIn) => {
+
   if (!payload.email || !payload.password) {
     throw new AppError(httpStatus.NOT_FOUND, "Mail/password not found", "");
   }
 
   console.log(payload);
+
   const QueryModel = User;
   const query: Record<string, unknown> = { email: payload.email };
 
@@ -41,31 +43,9 @@ const loginService = async (payload: ISignIn) => {
     throw new AppError(httpStatus.FORBIDDEN, "This Password Not Matched", "");
   }
 
-  const user = await QueryModel.findById(await idConverter(isExist._id)).lean();
-
-  const jwtPayload = {
-    id: isExist._id.toString(),
-    role: isExist.role,
-    email: isExist.email,
-  };
-
-  const accessToken = jwtHelpers.generateToken(
-    jwtPayload,
-    config.jwt_access_secret as string,
-    config.expires_in as string
-  );
-
-  const refreshToken = jwtHelpers.generateToken(
-    jwtPayload,
-    config.jwt_refresh_secret as string,
-    config.refresh_expires_in as string
-  );
   console.log("isUserExist: ", isExist);
-  return {
-    accessToken,
-    refreshToken,
-    user: user,
-  };
+
+  return isExist;
 };
 
 const requestForgotPasswordService = async (email: string) => {
@@ -211,12 +191,35 @@ const updatePasswordService = async (payload: TUpdatePassword) => {
   return { user: updatedUser };
 };
 
+const GenerateToken = async (payload: IJwtPayload) => {
+
+  const accessToken = jwtHelpers.generateToken(
+    payload,
+    config.jwt_access_secret as string,
+    config.expires_in as string
+  );
+
+  const refreshToken = jwtHelpers.generateToken(
+    payload,
+    config.jwt_refresh_secret as string,
+    config.refresh_expires_in as string
+  );
+
+  if (!accessToken || !refreshToken) {
+    throw new AppError(httpStatus.INTERNAL_SERVER_ERROR, "Token generation failed", "");
+  }
+
+  return { accessToken, refreshToken };
+}
+
+
 const AuthServices = {
   loginService,
   requestForgotPasswordService,
   verifyOtpService,
   resetPasswordService,
   updatePasswordService,
+  GenerateToken
 };
 
 export default AuthServices;

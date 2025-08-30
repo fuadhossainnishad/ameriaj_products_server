@@ -15,6 +15,8 @@ router.post(
   "/webhook",
   express.raw({ type: "applicaton/json" }),
   //   validationRequest(AuthValidationSchema.playerSignUpValidation),
-  SubscriptionController.Webhook);
+  SubscriptionController.Webhook
+);
+
 const SubscriptionRouter = router;
 export default SubscriptionRouter;

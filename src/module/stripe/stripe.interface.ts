@@ -9,6 +9,7 @@ export type TCheckout = {
 export interface IPaymentIntent {
   userId: string;
   subscriptionId: string;
+  stripe_customer_id: string
   amount: number;
   currency: string;
 }
@@ -23,14 +24,14 @@ export enum TPaymentStatus {
   accept = "accept",
   reject = "reject",
 }
-export interface IPayment {
-  subscriptionId: Types.ObjectId;
-  amount: number;
-  currency: string;
-  status: string;
-  method: string;
-  paymentIntentId: string;
-}
+// export interface IPayment {
+//   subscriptionId: Types.ObjectId;
+//   amount: number;
+//   currency: string;
+//   status: string;
+//   method: string;
+//   paymentIntentId: string;
+// }
 
 export interface ICreateFreeSubscription {
   _id: Types.ObjectId;

@@ -6,7 +6,7 @@ import sendResponse from "../../utility/sendResponse";
 import GenericService from "../../utility/genericService.helpers";
 import { idConverter } from "../../utility/idConverter";
 import NotificationServices from "../notification/notification.service";
-import { ISubscription, SubStatus, SubType } from "./subscription.interface";
+import { ISubscription, PaidStatus, SubStatus, SubType } from "./subscription.interface";
 import User from "../user/user.model";
 import StripeUtils from "../../utility/stripe.utils";
 import { IUser } from "../user/user.interface";
@@ -14,6 +14,8 @@ import SubscriptionServices from "./subscription.services";
 import StripeServices, { handleStripeWebhook } from "../stripe/stripe.service";
 import { Types } from "mongoose";
 import Subscription from "./subscription.model";
+import Payment from "../payment/payment.model";
+import { IPayment } from "../payment/payment.interface";
 
 const createSubscription: RequestHandler = catchAsync(async (req, res) => {
   // if (req.user?.role !== "Admin") {
@@ -249,40 +251,11 @@ const PaidSubscription: RequestHandler = catchAsync(async (req, res) => {
 
   const paymentIntent = await StripeServices.createPaymentIntentService({
     userId: req.user._id.toString(),
+    stripe_customer_id: req.user.stripe_customer_id,
     subscriptionId: subscriptionId,
     amount: subscription[0].price,
     currency: 'usd'
   })
-
-  // const confirmPayment = await handleStripeWebhook({
-  //   sig: "",
-  //   rawbody: {
-  //     type: "paymentIntent.succeeded",
-  //   }
-  // })
-
-  // const paymentPayload: IPayment = {
-  //   orderId: await idConverter(confirmPayment.paymentIntent.metadata.subscriptionId),
-  //   userId: req.user._id,
-  //   subscriptionId: await idConverter(subscriptionId),
-  //   amount: confirmPayment.paymentIntent.amount_received / 100,
-  //   currency: confirmPayment.paymentIntent.currency,
-  //   payment_method: confirmPayment.paymentIntent.payment_method_types[0],
-  //   paymentIntentId: confirmPayment.paymentIntent.id,
-  //   payStatus: true
-  // }
-
-  // const insertPayment = await GenericService.insertResources<IPayment>(Payment, paymentPayload)
-
-  // subscriptionPlan.paid.subscription_id = await idConverter(subscriptionId)
-  // subscriptionPlan.paid.status = PaidStatus.ACTIVE
-  // subscriptionPlan.paid.start = new Date()
-  // subscriptionPlan.paid.end = new Date(subscriptionPlan.paid.start.getTime() + subscriptionPlan.paid.length * 24 * 60 * 60 * 1000)
-  // subscriptionPlan.subType = SubType.PAID
-  // subscriptionPlan.isActive = true
-  // req.user.sub_status = SubStatus.ACTIVE
-
-  // const updateUser = await GenericService.updateResources<IUser>(User, id, req.user)
 
   sendResponse(res, {
     success: true,
@@ -293,15 +266,59 @@ const PaidSubscription: RequestHandler = catchAsync(async (req, res) => {
 })
 
 const Webhook: RequestHandler = catchAsync(async (req, res) => {
-  const result =await handleStripeWebhook({
-    sig: req.headers["stripe-signature"] as string,
-    rawbody: req.body,
+  const { _id, stripe_customer_id, subscriptionPlan } = req.user
+  const sig = req.headers["stripe-signature"] as string;
+  const rawbody = req.body.data
+
+  const { paymentIntent } = await handleStripeWebhook({
+    sig,
+    rawbody,
   });
+
+  const { orderid, subscriptionId } = paymentIntent.metadata
+
+  const paymentPayload: IPayment = {
+    orderId: await idConverter(orderid),
+    userId: _id,
+    stripeCustomerId: stripe_customer_id,
+    paymentIntentId: paymentIntent.id,
+    subscriptionId: await idConverter(subscriptionId),
+    amount: paymentIntent.amount_received / 100,
+    currency: paymentIntent.currency,
+    payment_method: paymentIntent.payment_method_types[0],
+    payStatus: true,
+    isDeleted: false
+  }
+
+  const insertPayment = await GenericService.insertResources<IPayment>(Payment, paymentPayload)
+
+  subscriptionPlan.paid.subscription_id = await idConverter(subscriptionId)
+  subscriptionPlan.paid.status = PaidStatus.ACTIVE
+  subscriptionPlan.paid.start = new Date()
+  subscriptionPlan.paid.end = new Date(subscriptionPlan.paid.start.getTime() + subscriptionPlan.paid.length * 24 * 60 * 60 * 1000)
+  subscriptionPlan.subType = SubType.PAID
+  subscriptionPlan.isActive = true
+  req.user.sub_status = SubStatus.ACTIVE
+
+  await GenericService.updateResources<IUser>(User, _id, req.user)
+
+  // const updateOrderStatus = await Subscription.findByIdAndUpdate(
+  //   await idConverter(orderId),
+  //   { status: "accept" },
+  //   { new: true }
+  // );
+  // if (!updateOrderStatus) {
+  //   throw new AppError(
+  //     httpStatus.NOT_FOUND,
+  //     "Order status not updated to accept due to some issue"
+  //   );
+  // }
+
   sendResponse(res, {
     success: true,
     statusCode: httpStatus.CREATED,
-    message: "success",
-    data: result,
+    message: "success fully paid your subscription",
+    data: insertPayment,
   });
 });
 

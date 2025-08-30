@@ -4,11 +4,11 @@ import AuthServices from "./auth.services";
 import httpStatus from "http-status";
 import config from "../../app/config";
 import sendResponse from "../../utility/sendResponse";
-import NotificationServices from "../notification/notification.service";
 import AppError from "../../app/error/AppError";
 import GenericService from "../../utility/genericService.helpers";
 import User from "../user/user.model";
 import { IUser } from "../user/user.interface";
+import { IJwtPayload } from "./auth.interface";
 
 const signUp: RequestHandler = catchAsync(async (req, res) => {
   const { role } = req.body.data;
@@ -45,40 +45,56 @@ const signUp: RequestHandler = catchAsync(async (req, res) => {
   });
 });
 
+
 const login: RequestHandler = catchAsync(async (req, res) => {
-  const result = await AuthServices.loginService(req.body.data);
+
+  // await NotificationServices.sendNoification({
+  //   ownerId: user._id,
+  //   key: "notification",
+  //   data: {
+  //     id: result.user?._id.toString(),
+  //     message: `User/vendor login`,
+  //   },
+  //   receiverId: [user._id],
+  //   notifyAdmin: true,
+  // });
+  const user = await AuthServices.loginService(req.body.data);
   console.log(req.body.data!);
 
-  const { refreshToken, accessToken, user } = result;
-  res.cookie("refreshToken", refreshToken, {
+  const jwtPayload: IJwtPayload = {
+    id: user._id.toString(),
+    role: user.role,
+    email: user.email,
+    sub_status: user.sub_status,
+    subType: user.subscriptionPlan.subType,
+  };
+
+  const token = await AuthServices.GenerateToken(jwtPayload);
+  res.cookie("refreshToken", token.refreshToken, {
     secure: config.NODE_ENV === "production",
     httpOnly: true,
   });
 
-  if (!user || !user._id) {
-    throw new AppError(httpStatus.UNAUTHORIZED, "User not found");
-  }
+  const getRedirectUrl = (subStatus: string, trialUsed: boolean) => {
+    if (subStatus === "inactive" && !trialUsed) {
+      return { message: "Please complete your trial subscription", redirect: "/trial" };
+    }
+    if (subStatus === "inactive" && trialUsed) {
+      return { message: "Please complete your trial subscription", redirect: "/paid" };
+    }
+    return { message: "Successfully logged in", redirect: "/home" };
+  };
 
-  await NotificationServices.sendNoification({
-    ownerId: user._id,
-    key: "notification",
-    data: {
-      id: result.user?._id.toString(),
-      message: `User/vendor login`,
-    },
-    receiverId: [user._id],
-    notifyAdmin: true,
-  });
+  const redirectData = getRedirectUrl(user.sub_status, user.subscriptionPlan.trialUsed);
 
-  sendResponse(res, {
+  return sendResponse(res, {
     success: true,
     statusCode: httpStatus.OK,
-    message: "Successfully Login",
-    data: {
-      accessToken,
-      user: user,
-    },
+    message: redirectData.message,
+    data: { token, redirectData },
   });
+
+
 });
 
 const requestForgotPassword: RequestHandler = catchAsync(async (req, res) => {

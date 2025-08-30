@@ -16,6 +16,7 @@ const createPaymentIntentService = async (payload: IPaymentIntent) => {
     metadata: {
       subscriptionId: payload.subscriptionId,
       userId: payload.userId,
+      stripe_customer_id: payload.stripe_customer_id
     },
   });
   if (!paymentIntent) {
@@ -85,17 +86,6 @@ export const handleStripeWebhook = async (payload: IWebhooks) => {
 
   return { paymentIntent }
 
-  // const updateOrderStatus = await Subscription.findByIdAndUpdate(
-  //   await idConverter(orderId),
-  //   { status: "accept" },
-  //   { new: true }
-  // );
-  // if (!updateOrderStatus) {
-  //   throw new AppError(
-  //     httpStatus.NOT_FOUND,
-  //     "Order status not updated to accept due to some issue"
-  //   );
-  // }
 };
 
 const StripeServices = {

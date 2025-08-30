@@ -36,3 +36,11 @@ export interface IOtp {
 export interface ISignUpBase extends ISignup {
   comparePassword(plainPassword: string): Promise<boolean>;
 }
+
+export interface IJwtPayload {
+  id: string;
+  role: string;
+  email: string;
+  sub_status?: string;
+  subType?: string;
+}
