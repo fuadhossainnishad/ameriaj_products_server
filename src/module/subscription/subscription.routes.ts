@@ -11,6 +11,10 @@ router
   .delete(auth("Admin"), SubscriptionController.deleteSubscription);
 
 router.patch("/:id", SubscriptionController.updateSubscription);
-
+router.post(
+  "/webhook",
+  express.raw({ type: "applicaton/json" }),
+  //   validationRequest(AuthValidationSchema.playerSignUpValidation),
+  SubscriptionController.Webhook);
 const SubscriptionRouter = router;
 export default SubscriptionRouter;

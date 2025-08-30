@@ -31,6 +31,6 @@ export default {
   },
   stripe: {
     secretKey: process.env.STRIPE_SECRET_KEY,
-    webHookSecret:process.env.STRIPE_SECRET_KEY,
+    webHookSecret:process.env.STRIPE_WEBHOOK_SECRET,
   },
 };

@@ -6,18 +6,14 @@ import sendResponse from "../../utility/sendResponse";
 import GenericService from "../../utility/genericService.helpers";
 import { idConverter } from "../../utility/idConverter";
 import NotificationServices from "../notification/notification.service";
-import Subscription from './subscription.model';
-import { ISubscription, PaidStatus, SubStatus, SubType } from "./subscription.interface";
+import { ISubscription, SubStatus, SubType } from "./subscription.interface";
 import User from "../user/user.model";
 import StripeUtils from "../../utility/stripe.utils";
 import { IUser } from "../user/user.interface";
 import SubscriptionServices from "./subscription.services";
-import StripeServices from "../stripe/stripe.service";
+import StripeServices, { handleStripeWebhook } from "../stripe/stripe.service";
 import { Types } from "mongoose";
-import Subscription from '../appointment/appointment.interface';
-import { handleStripeWebhook } from "../stripe/stripe.webhook";
-import Payment from "../payment/payment.model";
-import { IPayment } from "../payment/payment.interface";
+import Subscription from "./subscription.model";
 
 const createSubscription: RequestHandler = catchAsync(async (req, res) => {
   // if (req.user?.role !== "Admin") {
@@ -220,12 +216,14 @@ const TrialSubscription: RequestHandler = catchAsync(async (req, res) => {
 const PaidSubscription: RequestHandler = catchAsync(async (req, res) => {
   const { role, email, id, stripe_customer_id } = req.user;
   const { subscriptionId } = req.body.data
+
   if (role !== "User" || !email || !id) {
     throw new AppError(
       httpStatus.BAD_REQUEST,
       "Only valid user can have paid subscription",
     );
   }
+
   if (!subscriptionId) {
     throw new AppError(
       httpStatus.BAD_REQUEST,
@@ -237,7 +235,8 @@ const PaidSubscription: RequestHandler = catchAsync(async (req, res) => {
     const customer_id = await StripeUtils.CreateCustomerId(email);
     req.user = await GenericService.updateResources<IUser>(User, id, { stripe_customer_id: customer_id })
   }
-  const { subscriptionPlan } = req.user
+
+  // const { subscriptionPlan } = req.user
   // if (subscriptionPlan.subType === "paid" && subscriptionPlan.paid.status === "active") {
   //   throw new AppError(
   //     httpStatus.BAD_REQUEST,
@@ -255,43 +254,56 @@ const PaidSubscription: RequestHandler = catchAsync(async (req, res) => {
     currency: 'usd'
   })
 
-  const confirmPayment = await handleStripeWebhook({
-    sig: "",
-    rawbody: {
-      type: "paymentIntent.succeeded",
-    }
-  })
+  // const confirmPayment = await handleStripeWebhook({
+  //   sig: "",
+  //   rawbody: {
+  //     type: "paymentIntent.succeeded",
+  //   }
+  // })
 
-  const paymentPayload: IPayment = {
-    orderId: await idConverter(confirmPayment.paymentIntent.metadata.subscriptionId),
-    userId: req.user._id,
-    subscriptionId: await idConverter(subscriptionId),
-    amount: confirmPayment.paymentIntent.amount_received / 100,
-    currency: confirmPayment.paymentIntent.currency,
-    payment_method: confirmPayment.paymentIntent.payment_method_types[0],
-    paymentIntentId: confirmPayment.paymentIntent.id,
-    payStatus: true
-  }
+  // const paymentPayload: IPayment = {
+  //   orderId: await idConverter(confirmPayment.paymentIntent.metadata.subscriptionId),
+  //   userId: req.user._id,
+  //   subscriptionId: await idConverter(subscriptionId),
+  //   amount: confirmPayment.paymentIntent.amount_received / 100,
+  //   currency: confirmPayment.paymentIntent.currency,
+  //   payment_method: confirmPayment.paymentIntent.payment_method_types[0],
+  //   paymentIntentId: confirmPayment.paymentIntent.id,
+  //   payStatus: true
+  // }
 
-  const insertPayment = await GenericService.insertResources<IPayment>(Payment, paymentPayload)
+  // const insertPayment = await GenericService.insertResources<IPayment>(Payment, paymentPayload)
 
-  subscriptionPlan.paid.subscription_id = await idConverter(subscriptionId)
-  subscriptionPlan.paid.status = PaidStatus.ACTIVE
-  subscriptionPlan.paid.start = new Date()
-  subscriptionPlan.paid.end = new Date(subscriptionPlan.paid.start.getTime() + subscriptionPlan.paid.length * 24 * 60 * 60 * 1000)
-  subscriptionPlan.subType = SubType.PAID
-  subscriptionPlan.isActive = true
-  req.user.sub_status = SubStatus.ACTIVE
+  // subscriptionPlan.paid.subscription_id = await idConverter(subscriptionId)
+  // subscriptionPlan.paid.status = PaidStatus.ACTIVE
+  // subscriptionPlan.paid.start = new Date()
+  // subscriptionPlan.paid.end = new Date(subscriptionPlan.paid.start.getTime() + subscriptionPlan.paid.length * 24 * 60 * 60 * 1000)
+  // subscriptionPlan.subType = SubType.PAID
+  // subscriptionPlan.isActive = true
+  // req.user.sub_status = SubStatus.ACTIVE
 
-  const updateUser = await GenericService.updateResources<IUser>(User, id, req.user)
+  // const updateUser = await GenericService.updateResources<IUser>(User, id, req.user)
 
   sendResponse(res, {
     success: true,
-    statusCode: httpStatus.CREATED,
-    message: "successfully get paid subscription",
-    data: updateUser,
+    statusCode: httpStatus.CONTINUE,
+    message: "please complete your payment to activate paid subscription",
+    data: paymentIntent,
   });
 })
+
+const Webhook: RequestHandler = catchAsync(async (req, res) => {
+  const result =await handleStripeWebhook({
+    sig: req.headers["stripe-signature"] as string,
+    rawbody: req.body,
+  });
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.CREATED,
+    message: "success",
+    data: result,
+  });
+});
 
 const SubscriptionController = {
   createSubscription,
@@ -300,7 +312,8 @@ const SubscriptionController = {
   updateSubscription,
   deleteSubscription,
   TrialSubscription,
-  PaidSubscription
+  PaidSubscription,
+  Webhook
 };
 
 export default SubscriptionController;

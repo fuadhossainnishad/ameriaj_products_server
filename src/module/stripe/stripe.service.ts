@@ -1,8 +1,10 @@
 import httpStatus from "http-status";
 import stripe from "../../app/config/stripe.config";
 import AppError from "../../app/error/AppError";
-import { ICreateFreeSubscription, IPaymentIntent } from "./stripe.interface";
+import { ICreateFreeSubscription, IPaymentIntent, IWebhooks } from "./stripe.interface";
 import { ISubscription } from "../subscription/subscription.interface";
+import config from "../../app/config";
+import Stripe from "stripe";
 
 const createPaymentIntentService = async (payload: IPaymentIntent) => {
   const paymentIntent = await stripe.paymentIntents.create({
@@ -22,7 +24,7 @@ const createPaymentIntentService = async (payload: IPaymentIntent) => {
       "There is a problem on payment building"
     );
   }
-  return {clientSecret: paymentIntent.client_secret };
+  return { clientSecret: paymentIntent.client_secret };
 };
 
 const createStripeProductId = async (name: string, description: string): Promise<string> => {
@@ -65,10 +67,42 @@ const createSubscription = async (payload: ICreateFreeSubscription) => {
   return stripeSubscription.id;
 }
 
+export const handleStripeWebhook = async (payload: IWebhooks) => {
+  const { rawbody, sig } = payload;
+  const event = stripe.webhooks.constructEvent(
+    rawbody,
+    sig!,
+    config.stripe.webHookSecret!
+  );
+  if (!event || event.type !== "payment_intent.succeeded") {
+    throw new AppError(httpStatus.NOT_FOUND, "not webhook event have found");
+  }
+  const paymentIntent = event.data.object as Stripe.PaymentIntent;
+
+  if (!paymentIntent || paymentIntent.status !== "succeeded") {
+    throw new AppError(httpStatus.NOT_FOUND, "No payment intent found");
+  }
+
+  return { paymentIntent }
+
+  // const updateOrderStatus = await Subscription.findByIdAndUpdate(
+  //   await idConverter(orderId),
+  //   { status: "accept" },
+  //   { new: true }
+  // );
+  // if (!updateOrderStatus) {
+  //   throw new AppError(
+  //     httpStatus.NOT_FOUND,
+  //     "Order status not updated to accept due to some issue"
+  //   );
+  // }
+};
+
 const StripeServices = {
   createPaymentIntentService,
   createStripeProductId,
   createStripePriceId,
-  createSubscription
+  createSubscription,
+  handleStripeWebhook
 };
 export default StripeServices;
