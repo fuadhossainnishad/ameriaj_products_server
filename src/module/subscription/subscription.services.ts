@@ -34,7 +34,7 @@ const trialService = async <T extends IUser & { _id: Types.ObjectId }>(payload: 
         throw new AppError(httpStatus.EXPECTATION_FAILED, "Trial have used try paid one")
     }
     const { _id, stripe_customer_id } = payload
-    const freeTrial_id = await StripeServices.createSubscription({ _id, stripe_customer_id, subscriptionPlan.trial.trialEnd })
+    const freeTrial_id = await StripeServices.createSubscription({ _id, stripe_customer_id, trialEnd:subscriptionPlan.trial.end })
     if (!freeTrial_id) {
         throw new AppError(httpStatus.BAD_REQUEST, "Something error happened, try again later")
     }
