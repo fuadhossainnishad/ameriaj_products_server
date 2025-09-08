@@ -6,7 +6,7 @@ import { Role } from "../auth/auth.interface";
 const isRequired = function (this: IAdmin): boolean {
   return !(this.role === "Admin");
 };
-const AdminSchema: Schema = new Schema<IAdmin>(
+export const AdminSchema: Schema = new Schema<IAdmin>(
   {
     // sub: {
     //   type: String,
@@ -19,6 +19,7 @@ const AdminSchema: Schema = new Schema<IAdmin>(
 
     userName: {
       type: String,
+      required: false,
       default: "",
     },
     password: {

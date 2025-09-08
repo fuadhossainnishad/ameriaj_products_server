@@ -3,12 +3,12 @@ import HealthRouter from "../module/health/health.routes";
 import express from "express";
 import UserRouter from "../module/user/user.routes";
 import AdminRouter from "../module/admin/admin.routes";
-import StripeRouter from "../module/stripe/stripe.routes";
 import NotificationRouter from "../module/notification/notification.routes";
 import SettingsRouter from "../module/settings/settings.routes";
 import SubscriptionRouter from "../module/subscription/subscription.routes";
 import TrackRouter from "../module/track/track.routes";
 import AppointmentRouter from "../module/appointment/appointment.routes";
+import PaymentRouter from "../module/payment/payment.routes";
 
 const router = express.Router();
 
@@ -21,7 +21,7 @@ const moduleRoutes = [
   { path: "/settings", route: SettingsRouter },
   { path: "/track", route: TrackRouter },
   { path: "/subscription", route: SubscriptionRouter },
-  { path: "/payment", route: StripeRouter },
+  { path: "/payment", route: PaymentRouter },
   { path: "/notification", route: NotificationRouter },
 ];
 

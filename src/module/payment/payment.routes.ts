@@ -13,5 +13,5 @@ const router = express.Router();
 //   AuthController.playerSignUp,
 // );
 
-// const PlayerRouter = router;
-export default router;
+const PaymentRouter = router;
+export default PaymentRouter;

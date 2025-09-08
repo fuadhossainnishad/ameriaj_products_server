@@ -47,6 +47,7 @@ const signUp: RequestHandler = catchAsync(async (req, res) => {
 
 
 const login: RequestHandler = catchAsync(async (req, res) => {
+  let redirectData;
 
   // await NotificationServices.sendNoification({
   //   ownerId: user._id,
@@ -65,9 +66,13 @@ const login: RequestHandler = catchAsync(async (req, res) => {
     id: user._id.toString(),
     role: user.role,
     email: user.email,
-    sub_status: user.sub_status,
-    subType: user.subscriptionPlan.subType,
   };
+
+
+  if (user.role === 'User') {
+    jwtPayload.sub_status = user.sub_status
+    jwtPayload.subType = user.subscriptionPlan.subType
+  }
 
   const token = await AuthServices.GenerateToken(jwtPayload);
   res.cookie("refreshToken", token.refreshToken, {
@@ -75,22 +80,28 @@ const login: RequestHandler = catchAsync(async (req, res) => {
     httpOnly: true,
   });
 
-  const getRedirectUrl = (subStatus: string, trialUsed: boolean) => {
-    if (subStatus === "inactive" && !trialUsed) {
-      return { message: "Please complete your trial subscription", redirect: "/trial" };
-    }
-    if (subStatus === "inactive" && trialUsed) {
-      return { message: "Please complete your trial subscription", redirect: "/paid" };
-    }
-    return { message: "Successfully logged in", redirect: "/home" };
-  };
+  redirectData = { meassage: "login as admin", redirect: "/dashboard" }
 
-  const redirectData = getRedirectUrl(user.sub_status, user.subscriptionPlan.trialUsed);
+  if (user.role === 'User') {
+    const getRedirectUrl = (subStatus: string, trialUsed: boolean) => {
+      if (subStatus === "inactive" && !trialUsed) {
+        return { message: "Please complete your trial subscription", redirect: "/trial" };
+      }
+      if (subStatus === "inactive" && trialUsed) {
+        return { message: "Please complete your trial subscription", redirect: "/paid" };
+      }
+      return { message: "Successfully logged in", redirect: "/home" };
+    };
+
+    redirectData = getRedirectUrl(user.sub_status, user.subscriptionPlan.trialUsed);
+  }
+
+
 
   return sendResponse(res, {
     success: true,
     statusCode: httpStatus.OK,
-    message: redirectData.message,
+    message: redirectData.message!,
     data: { token, redirectData },
   });
 
